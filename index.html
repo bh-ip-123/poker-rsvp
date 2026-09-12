@@ -205,15 +205,39 @@
 
   /* ---------- Cards ---------- */
   .card{
+    position:relative;
     background:var(--surface);
     border:1px solid var(--line);
     border-radius:var(--radius);
-    padding:22px;
+    padding:24px 22px 22px;
     margin-top:18px;
     box-shadow:var(--shadow);
+    overflow:hidden;
   }
-  .card h2{font-size:19px; font-weight:600; font-style:italic; color:var(--ink);}
+  .card::before{
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg, var(--felt-2), var(--brass));
+  }
+  .card h2{font-size:19px; font-weight:600; font-style:italic; color:var(--felt-2);}
   .hint{color:var(--ink-soft); font-size:13.5px; margin:6px 0 0;}
+
+  .card-fan{display:flex; gap:4px; margin-top:2px;}
+  .mini-card{
+    width:30px; height:42px; border-radius:5px;
+    background:#FBF8EE;
+    border:1px solid var(--brass);
+    display:flex; align-items:center; justify-content:center;
+    font-family:"IBM Plex Mono", monospace; font-weight:700; font-size:12px;
+    color:#201A10;
+    box-shadow:0 2px 5px rgba(0,0,0,0.18);
+    flex:none;
+  }
+  .mini-card:nth-child(1){transform:rotate(-10deg) translateY(3px);}
+  .mini-card:nth-child(2){transform:rotate(-5deg) translateY(1px);}
+  .mini-card:nth-child(3){transform:rotate(0deg);}
+  .mini-card:nth-child(4){transform:rotate(5deg) translateY(1px);}
+  .mini-card:nth-child(5){transform:rotate(10deg) translateY(3px);}
 
   form{display:flex; flex-direction:column; gap:14px; margin-top:16px;}
   label{display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:600; color:var(--ink-soft);}
@@ -522,6 +546,7 @@
       +   '</div>'
       + '</section>'
       + '<section class="card">'
+      +   '<div class="card-fan" aria-hidden="true"><span class="mini-card">A♠</span><span class="mini-card">K♠</span><span class="mini-card">Q♠</span><span class="mini-card">J♠</span><span class="mini-card">10♠</span></div>'
       +   '<h2>Set up the game</h2>'
       +   '<p class="hint">The date defaults to the fourth Thursday of the month, 8:00 PM Eastern — adjust it below only if this month needs a one-off change. Fill in the rest once; the card above updates as you type, and everyone who opens this link afterward will see it.</p>'
       +   '<form id="setupForm">'
