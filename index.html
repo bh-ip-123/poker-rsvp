@@ -4,64 +4,73 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500;1,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#F8F4EA;
+    --bg:#F3EAD3;
+    --bg-2:#FBF6E9;
     --surface:#FFFFFF;
-    --surface-2:#F1EAD9;
-    --ink:#2A2620;
-    --ink-soft:#5B5347;
-    --ink-faint:#948C7C;
-    --felt:#1B5E45;
-    --felt-2:#2F7E5B;
+    --surface-2:#F3EAD6;
+    --ink:#241F17;
+    --ink-soft:#5B5240;
+    --ink-faint:#93876E;
+    --felt:#0B4A34;
+    --felt-2:#2FAE7A;
+    --felt-deep:#062E20;
     --felt-ink:#F5F1E4;
-    --brass:#C9A227;
-    --brass-strong:#A97F1A;
-    --chip-red:#C1443A;
-    --line:#E3DCC8;
-    --line-soft:#EDE7D6;
-    --shadow:0 1px 2px rgba(42,38,32,0.06), 0 8px 24px -12px rgba(42,38,32,0.18);
+    --brass:#E3A72E;
+    --brass-strong:#B9790E;
+    --brass-bright:#F4C660;
+    --chip-red:#C43A2C;
+    --line:#E4D8B8;
+    --line-soft:#EFE6CC;
+    --shadow:0 2px 4px rgba(36,31,23,0.08), 0 14px 32px -14px rgba(36,31,23,0.28);
     --radius:14px;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#171310;
-      --surface:#241E17;
-      --surface-2:#2C2419;
-      --ink:#F3EEE2;
-      --ink-soft:#C9C0AC;
-      --ink-faint:#8B8270;
-      --felt:#0E2E22;
-      --felt-2:#2F7E5B;
+      --bg:#15110C;
+      --bg-2:#1E1811;
+      --surface:#231C14;
+      --surface-2:#2B2217;
+      --ink:#F5EFDF;
+      --ink-soft:#CDBFA0;
+      --ink-faint:#8C7F65;
+      --felt:#07271B;
+      --felt-2:#33B584;
+      --felt-deep:#03140D;
       --felt-ink:#F5F1E4;
-      --brass:#E0B84A;
-      --brass-strong:#F0CB6B;
-      --chip-red:#E07A6E;
-      --line:#3A3226;
-      --line-soft:#2E2820;
-      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+      --brass:#E9BB4E;
+      --brass-strong:#F6D374;
+      --brass-bright:#FFE39A;
+      --chip-red:#E8806E;
+      --line:#3D3220;
+      --line-soft:#2E2718;
+      --shadow:0 2px 4px rgba(0,0,0,0.35), 0 14px 32px -14px rgba(0,0,0,0.6);
     }
   }
   :root[data-theme="dark"]{
-    --bg:#171310;
-    --surface:#241E17;
-    --surface-2:#2C2419;
-    --ink:#F3EEE2;
-    --ink-soft:#C9C0AC;
-    --ink-faint:#8B8270;
-    --felt:#0E2E22;
-    --felt-2:#2F7E5B;
+    --bg:#15110C;
+    --bg-2:#1E1811;
+    --surface:#231C14;
+    --surface-2:#2B2217;
+    --ink:#F5EFDF;
+    --ink-soft:#CDBFA0;
+    --ink-faint:#8C7F65;
+    --felt:#07271B;
+    --felt-2:#33B584;
+    --felt-deep:#03140D;
     --felt-ink:#F5F1E4;
-    --brass:#E0B84A;
-    --brass-strong:#F0CB6B;
-    --chip-red:#E07A6E;
-    --line:#3A3226;
-    --line-soft:#2E2820;
-    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    --brass:#E9BB4E;
+    --brass-strong:#F6D374;
+    --brass-bright:#FFE39A;
+    --chip-red:#E8806E;
+    --line:#3D3220;
+    --line-soft:#2E2718;
+    --shadow:0 2px 4px rgba(0,0,0,0.35), 0 14px 32px -14px rgba(0,0,0,0.6);
   }
 
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background:var(--bg);
+    background:radial-gradient(1100px 620px at 50% -8%, var(--bg-2) 0%, var(--bg) 60%);
     color:var(--ink);
     font-family:"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing:antialiased;
@@ -86,9 +95,9 @@
   .invite-card{
     position:relative;
     background:
-      radial-gradient(circle at 15% 20%, rgba(255,255,255,0.035) 0, transparent 45%),
-      radial-gradient(circle at 85% 75%, rgba(255,255,255,0.03) 0, transparent 40%),
-      var(--felt);
+      radial-gradient(circle at 15% 15%, rgba(255,255,255,0.10) 0, transparent 42%),
+      radial-gradient(circle at 88% 85%, rgba(0,0,0,0.20) 0, transparent 46%),
+      linear-gradient(155deg, var(--felt-2) 0%, var(--felt) 46%, var(--felt-deep) 100%);
     color:var(--felt-ink);
     border-radius:18px;
     padding:26px 24px 24px;
@@ -251,8 +260,8 @@
   .stepper span{font-family:"IBM Plex Mono", monospace; font-size:15px; min-width:14px; text-align:center;}
 
   .btn-primary{
-    background:var(--brass);
-    color:#241B09;
+    background:linear-gradient(135deg, var(--brass-bright) 0%, var(--brass) 55%, var(--brass-strong) 100%);
+    color:#241505;
     border:none;
     border-radius:9px;
     padding:12px 16px;
@@ -260,9 +269,10 @@
     font-size:15px;
     font-weight:700;
     cursor:pointer;
-    transition:transform 0.1s ease, background 0.15s ease;
+    box-shadow:0 6px 16px -8px rgba(185,121,14,0.55);
+    transition:transform 0.1s ease, filter 0.15s ease;
   }
-  .btn-primary:hover{background:var(--brass-strong);}
+  .btn-primary:hover{filter:brightness(1.07);}
   .btn-primary:active{transform:scale(0.98);}
   .btn-ghost{
     background:none;
@@ -313,12 +323,15 @@
     font-family:"IBM Plex Mono", monospace;
     font-size:11.5px;
     color:var(--felt-2);
-    background:rgba(44,107,79,0.12);
+    background:rgba(47,174,122,0.14);
     padding:1px 7px;
     border-radius:999px;
     flex:none;
   }
-  .seat-row.waiting .badge{color:var(--chip-red); background:rgba(168,58,50,0.12);}
+  .seat-row.status-waitlist .badge{color:var(--chip-red); background:rgba(196,58,44,0.14);}
+  .seat-row.status-maybe .badge{color:var(--brass-strong); background:rgba(227,167,46,0.16);}
+  .seat-row.status-out .badge{color:var(--ink-faint); background:rgba(147,135,110,0.16);}
+  .seat-row.status-maybe .who, .seat-row.status-out .who{color:var(--ink-soft);}
   .seat-row{flex-wrap:wrap;}
   .seat-row .note{color:var(--ink-soft); font-size:13px; font-style:italic; margin-left:auto; text-align:right; max-width:55%;}
 
@@ -355,6 +368,8 @@
   var SUPABASE_ANON_KEY = "sb_publishable_hGpWisL0tTeT5HHeaTli-Q_yNieIiy4";
   var STORAGE_KEY = "dealMeIn:rsvpId";
   var ORGANIZER_NAME = "Barry";
+  var BUY_IN = 60;
+  var MAX_SEATS = 10;
 
   var state = {
     event: null,
@@ -467,14 +482,13 @@
       +     '<div class="meta-item"><dt>When</dt><dd class="mono" id="pvWhen">—</dd></div>'
       +     '<div class="meta-item"><dt>Venue</dt><dd id="pvWhere">—</dd></div>'
       +     '<div class="meta-item"><dt>Game type</dt><dd id="pvGameType">—</dd></div>'
-      +     '<div class="meta-item"><dt>Buy-in</dt><dd class="mono" id="pvBuyin">$60</dd></div>'
+      +     '<div class="meta-item"><dt>Buy-in</dt><dd class="mono">$' + BUY_IN + '</dd></div>'
       +     '<div class="meta-item"><dt>Organizer</dt><dd>' + esc(ORGANIZER_NAME) + '</dd></div>'
       +   '</dl>'
       +   '<div class="seat-stat">'
-      +     '<div class="seat-numbers"><span class="n">0</span><span class="slash">/</span><span class="max" id="pvMax">8</span><span class="label">seats</span></div>'
+      +     '<div class="seat-numbers"><span class="n">0</span><span class="slash">/</span><span class="max">' + MAX_SEATS + '</span><span class="label">seats</span></div>'
       +     '<div class="pip-row" id="pvPips"></div>'
       +   '</div>'
-      +   '<p class="invite-note" id="pvNote">BYOB, bring singles for the pot</p>'
       + '</section>'
       + '<section class="card">'
       +   '<h2>Set up the game</h2>'
@@ -486,11 +500,6 @@
       +       '<label>Time <input type="time" name="time" id="fTime" required></label>'
       +     '</div>'
       +     '<label>Game type <input name="gameType" id="fGameType" value="Texas Holdem Cash Game with Rebuys" required></label>'
-      +     '<div class="two-col">'
-      +       '<label>Buy-in ($) <input type="number" name="buyIn" id="fBuyin" min="0" step="5" value="60" required></label>'
-      +       '<label>Seats <input type="number" name="maxSeats" id="fSeats" min="2" max="20" value="8" required></label>'
-      +     '</div>'
-      +     '<label>Note <input name="note" id="fNote" value="BYOB, bring singles for the pot"></label>'
       +     '<button type="submit" class="btn-primary">Create invite</button>'
       +   '</form>'
       + '</section>';
@@ -511,7 +520,8 @@
     var autoParts = currentGameDateParts(new Date());
     document.getElementById("fDate").value = gameDateKey(autoParts);
     document.getElementById("fTime").value = "20:00";
-    var ids = ["fLocation","fDate","fTime","fGameType","fBuyin","fSeats","fNote"];
+    renderPips(document.getElementById("pvPips"), MAX_SEATS, 0, 0);
+    var ids = ["fLocation","fDate","fTime","fGameType"];
     ids.forEach(function(id){
       document.getElementById(id).addEventListener("input", updatePreview);
     });
@@ -521,9 +531,6 @@
       var details = {
         location: document.getElementById("fLocation").value.trim(),
         gameType: document.getElementById("fGameType").value.trim() || "Texas Holdem Cash Game with Rebuys",
-        buyIn: Number(document.getElementById("fBuyin").value) || 0,
-        maxSeats: Math.max(2, Number(document.getElementById("fSeats").value) || 8),
-        note: document.getElementById("fNote").value.trim(),
         date: document.getElementById("fDate").value,
         time: document.getElementById("fTime").value,
         overrideKey: gameDateKey(currentGameDateParts(new Date()))
@@ -533,14 +540,9 @@
   }
 
   function updatePreview(){
-    var max = Math.max(2, Number(document.getElementById("fSeats").value) || 8);
     document.getElementById("pvWhen").textContent = formatEffectiveWhen(document.getElementById("fDate").value, document.getElementById("fTime").value);
     document.getElementById("pvWhere").textContent = document.getElementById("fLocation").value.trim() || "—";
     document.getElementById("pvGameType").textContent = document.getElementById("fGameType").value.trim() || "—";
-    document.getElementById("pvBuyin").textContent = "$" + (Number(document.getElementById("fBuyin").value) || 0);
-    document.getElementById("pvMax").textContent = max;
-    document.getElementById("pvNote").textContent = document.getElementById("fNote").value.trim();
-    renderPips(document.getElementById("pvPips"), max, 0, 0);
   }
 
   /* ---------------- Main mode ---------------- */
@@ -554,15 +556,14 @@
       +     '<div class="meta-item"><dt>When</dt><dd class="mono" id="mWhen"></dd></div>'
       +     '<div class="meta-item"><dt>Venue</dt><dd id="mWhere"></dd></div>'
       +     '<div class="meta-item"><dt>Game type</dt><dd id="mGameType"></dd></div>'
-      +     '<div class="meta-item"><dt>Buy-in</dt><dd class="mono" id="mBuyin"></dd></div>'
+      +     '<div class="meta-item"><dt>Buy-in</dt><dd class="mono">$' + BUY_IN + '</dd></div>'
       +     '<div class="meta-item"><dt>Organizer</dt><dd>' + esc(ORGANIZER_NAME) + '</dd></div>'
       +   '</dl>'
       +   '<div class="seat-stat">'
-      +     '<div class="seat-numbers"><span class="n" id="mUsed">0</span><span class="slash">/</span><span class="max" id="mMax">0</span><span class="label">seats</span></div>'
+      +     '<div class="seat-numbers"><span class="n" id="mUsed">0</span><span class="slash">/</span><span class="max">' + MAX_SEATS + '</span><span class="label">seats</span></div>'
       +     '<div class="pip-row" id="mPips"></div>'
       +     '<p class="seat-note" id="mSeatNote"></p>'
       +   '</div>'
-      +   '<p class="invite-note" id="mNote"></p>'
       +   '<div class="edit-panel" id="editPanel">'
       +     '<form id="editForm">'
       +       '<p class="hint" style="margin-top:0">Date defaults to the fourth Thursday, 8pm ET — change it here just for this game night.</p>'
@@ -572,11 +573,6 @@
       +         '<label>Time <input type="time" name="time" id="eTime" required></label>'
       +       '</div>'
       +       '<label>Game type <input name="gameType" id="eGameType" required></label>'
-      +       '<div class="two-col">'
-      +         '<label>Buy-in ($) <input type="number" name="buyIn" id="eBuyin" min="0" step="5" required></label>'
-      +         '<label>Seats <input type="number" name="maxSeats" id="eSeats" min="2" max="20" required></label>'
-      +       '</div>'
-      +       '<label>Note <input name="note" id="eNote"></label>'
       +       '<button type="submit" class="btn-primary">Save changes</button>'
       +     '</form>'
       +   '</div>'
@@ -601,12 +597,10 @@
       +   '</form>'
       + '</section>'
       + '<section class="card roster">'
-      +   '<h2>Who’s at the table</h2>'
-      +   '<div id="confirmedList" class="roster-list"></div>'
+      +   '<h2>Who’s responded</h2>'
+      +   '<p class="hint" style="margin-top:0">Everyone who’s replied, all in one place.</p>'
+      +   '<div id="rosterList" class="roster-list"></div>'
       +   '<p id="emptyRoster" class="hint">No RSVPs yet — be the first.</p>'
-      +   '<div id="waitlistWrap" hidden><h3 class="roster-sub">Waitlist</h3><div id="waitlistList" class="roster-list"></div></div>'
-      +   '<div id="maybeWrap" hidden><h3 class="roster-sub">Maybe</h3><div id="maybeList" class="chip-list"></div></div>'
-      +   '<div id="outWrap" hidden><h3 class="roster-sub">Can’t make it</h3><p id="outList" class="muted-list"></p></div>'
       + '</section>';
   }
 
@@ -625,9 +619,6 @@
       var details = {
         location: document.getElementById("eLocation").value.trim(),
         gameType: document.getElementById("eGameType").value.trim() || "Texas Holdem Cash Game with Rebuys",
-        buyIn: Number(document.getElementById("eBuyin").value) || 0,
-        maxSeats: Math.max(2, Number(document.getElementById("eSeats").value) || 8),
-        note: document.getElementById("eNote").value.trim(),
         date: document.getElementById("eDate").value,
         time: document.getElementById("eTime").value,
         overrideKey: gameDateKey(currentGameDateParts(new Date()))
@@ -698,9 +689,6 @@
     var e = state.event || {};
     document.getElementById("eLocation").value = e.location || "";
     document.getElementById("eGameType").value = e.gameType || "Texas Holdem Cash Game with Rebuys";
-    document.getElementById("eBuyin").value = e.buyIn || 60;
-    document.getElementById("eSeats").value = e.maxSeats || 8;
-    document.getElementById("eNote").value = e.note || "";
     var autoKeyNow = gameDateKey(currentGameDateParts(new Date()));
     var overrideActive = e.overrideKey === autoKeyNow && e.date;
     document.getElementById("eDate").value = state.gameDateKey || autoKeyNow;
@@ -713,78 +701,58 @@
     document.getElementById("mWhen").textContent = state.gameDateDisplay || formatGameDateDisplay(currentGameDateParts(new Date()));
     document.getElementById("mWhere").textContent = e.location || "—";
     document.getElementById("mGameType").textContent = e.gameType || "—";
-    document.getElementById("mBuyin").textContent = "$" + (e.buyIn || 0);
-    document.getElementById("mNote").textContent = e.note || "";
 
-    var seating = computeSeating(state.rsvps, e.maxSeats || 8);
+    var seating = computeSeating(state.rsvps, MAX_SEATS);
     document.getElementById("mUsed").textContent = seating.used;
-    document.getElementById("mMax").textContent = e.maxSeats || 8;
-    renderPips(document.getElementById("mPips"), e.maxSeats || 8, seating.used, seating.waitlist.length);
+    renderPips(document.getElementById("mPips"), MAX_SEATS, seating.used, seating.waitlist.length);
     var note;
     if (seating.waitlist.length > 0) note = seating.waitlist.length + " on the waitlist";
-    else if (seating.used >= (e.maxSeats||8)) note = "Table’s full";
-    else note = ((e.maxSeats||8) - seating.used) + " seat" + (((e.maxSeats||8) - seating.used) === 1 ? "" : "s") + " left";
+    else if (seating.used >= MAX_SEATS) note = "Table’s full";
+    else note = (MAX_SEATS - seating.used) + " seat" + ((MAX_SEATS - seating.used) === 1 ? "" : "s") + " left";
     document.getElementById("mSeatNote").textContent = note;
   }
 
-  function seatRowHtml(idx, r, waiting){
-    var partyBadge = r.guests > 0 ? ("party of " + (1 + Number(r.guests))) : "solo";
+  function seatRowHtml(idx, r, kind){
+    var badgeText = kind === "in" ? (r.guests > 0 ? ("in · party of " + (1 + Number(r.guests))) : "in")
+      : kind === "waitlist" ? "waitlisted"
+      : kind === "maybe" ? "maybe"
+      : "can’t make it";
     return ''
-      + '<div class="seat-row' + (waiting ? ' waiting' : '') + '">'
+      + '<div class="seat-row status-' + kind + '">'
       +   '<span class="idx">' + (idx != null ? String(idx).padStart(2,"0") : "—") + '</span>'
       +   '<span class="who">' + esc(r.name) + '</span>'
-      +   '<span class="badge">' + partyBadge + '</span>'
+      +   '<span class="badge">' + badgeText + '</span>'
       +   (r.note ? '<span class="note">' + esc(r.note) + '</span>' : '')
       + '</div>';
   }
 
+  // One combined view: confirmed seats first (numbered), then waitlisted,
+  // then maybes, then declines — everyone visible together, nothing hidden.
   function refreshRoster(){
     var e = state.event;
     if (!e) return;
-    var seating = computeSeating(state.rsvps, e.maxSeats || 8);
-    var confirmedList = document.getElementById("confirmedList");
-    var waitlistWrap = document.getElementById("waitlistWrap");
-    var waitlistList = document.getElementById("waitlistList");
-    var maybeWrap = document.getElementById("maybeWrap");
-    var maybeList = document.getElementById("maybeList");
-    var outWrap = document.getElementById("outWrap");
-    var outList = document.getElementById("outList");
+    var seating = computeSeating(state.rsvps, MAX_SEATS);
+    var maybes = state.rsvps.filter(function(r){ return r.status === "maybe"; });
+    var outs = state.rsvps.filter(function(r){ return r.status === "out"; });
+
+    var rosterList = document.getElementById("rosterList");
     var emptyRoster = document.getElementById("emptyRoster");
 
-    if (seating.confirmed.length === 0){
-      confirmedList.innerHTML = "";
-      confirmedList.style.display = "none";
-    } else {
-      confirmedList.style.display = "";
-      confirmedList.innerHTML = seating.confirmed.map(function(r, i){ return seatRowHtml(i+1, r, false); }).join("");
+    if (state.rsvps.length === 0){
+      rosterList.innerHTML = "";
+      rosterList.style.display = "none";
+      emptyRoster.style.display = "block";
+      return;
     }
+    rosterList.style.display = "";
+    emptyRoster.style.display = "none";
 
-    if (seating.waitlist.length === 0){
-      waitlistWrap.hidden = true;
-    } else {
-      waitlistWrap.hidden = false;
-      waitlistList.innerHTML = seating.waitlist.map(function(r, i){ return seatRowHtml(null, r, true); }).join("");
-    }
-
-    var maybes = state.rsvps.filter(function(r){ return r.status === "maybe"; });
-    if (maybes.length === 0){
-      maybeWrap.hidden = true;
-    } else {
-      maybeWrap.hidden = false;
-      maybeList.innerHTML = maybes.map(function(r){
-        return '<span class="chip"><span class="dot"></span>' + esc(r.name) + '</span>';
-      }).join("");
-    }
-
-    var outs = state.rsvps.filter(function(r){ return r.status === "out"; });
-    if (outs.length === 0){
-      outWrap.hidden = true;
-    } else {
-      outWrap.hidden = false;
-      outList.textContent = outs.map(function(r){ return r.name; }).join(", ");
-    }
-
-    emptyRoster.style.display = (state.rsvps.length === 0) ? "block" : "none";
+    var rows = [];
+    seating.confirmed.forEach(function(r, i){ rows.push(seatRowHtml(i + 1, r, "in")); });
+    seating.waitlist.forEach(function(r){ rows.push(seatRowHtml(null, r, "waitlist")); });
+    maybes.forEach(function(r){ rows.push(seatRowHtml(null, r, "maybe")); });
+    outs.forEach(function(r){ rows.push(seatRowHtml(null, r, "out")); });
+    rosterList.innerHTML = rows.join("");
   }
 
   function maybePrefillForm(){
@@ -833,15 +801,12 @@
   function dbRowToEvent(row){
     return {
       location: row.location, gameType: row.game_type,
-      buyIn: Number(row.buy_in) || 0, maxSeats: Number(row.max_seats) || 8,
-      note: row.note || "", date: row.date, time: row.time,
-      overrideKey: row.override_key || null
+      date: row.date, time: row.time, overrideKey: row.override_key || null
     };
   }
   function eventToDbRow(e){
     return {
       id: "main", location: e.location, game_type: e.gameType,
-      buy_in: e.buyIn, max_seats: e.maxSeats, note: e.note,
       date: e.date, time: e.time, override_key: e.overrideKey
     };
   }
