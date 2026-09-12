@@ -71,30 +71,31 @@
   body{
     margin:0;
     background:
-      radial-gradient(900px 500px at 88% 102%, rgba(47,174,122,0.07) 0%, transparent 60%),
-      radial-gradient(1100px 620px at 50% -8%, var(--bg-2) 0%, var(--bg) 60%);
+      radial-gradient(1500px 950px at 50% 6%, var(--felt-2) 0%, var(--felt) 46%, var(--felt-deep) 80%, #030F0A 100%);
     color:var(--ink);
     font-family:"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing:antialiased;
   }
 
-  /* A big, low-opacity fanned hand sitting fixed in the corner — a nod to
-     the felt table, subtle enough to stay out of the way of the content. */
+  /* A big fanned hand fixed in the corner, sitting right on the felt
+     backdrop — the page itself now reads as a poker table, with the
+     cream cards/invite floating on top of it. */
   .table-bg{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;}
-  .table-bg .hand{position:absolute; bottom:-52px; right:-36px; display:flex; opacity:0.06;}
+  .table-bg .hand{position:absolute; bottom:-60px; right:-40px; display:flex; opacity:0.9;}
   .table-bg .tb-card{
-    width:118px; height:166px; border-radius:12px; margin-left:-44px;
+    width:130px; height:182px; border-radius:13px; margin-left:-48px;
     background:#FBF8EE; border:2px solid var(--brass);
+    box-shadow:0 12px 28px rgba(0,0,0,0.35);
     display:flex; align-items:center; justify-content:center;
-    font-family:"IBM Plex Mono", monospace; font-weight:700; font-size:36px;
+    font-family:"IBM Plex Mono", monospace; font-weight:700; font-size:42px;
     color:#201A10;
     flex:none;
   }
-  .table-bg .tb-card:nth-child(1){transform:rotate(-18deg) translateY(22px);}
-  .table-bg .tb-card:nth-child(2){transform:rotate(-9deg) translateY(9px);}
+  .table-bg .tb-card:nth-child(1){transform:rotate(-18deg) translateY(24px);}
+  .table-bg .tb-card:nth-child(2){transform:rotate(-9deg) translateY(10px);}
   .table-bg .tb-card:nth-child(3){transform:rotate(0deg);}
-  .table-bg .tb-card:nth-child(4){transform:rotate(9deg) translateY(9px);}
-  .table-bg .tb-card:nth-child(5){transform:rotate(18deg) translateY(22px);}
+  .table-bg .tb-card:nth-child(4){transform:rotate(9deg) translateY(10px);}
+  .table-bg .tb-card:nth-child(5){transform:rotate(18deg) translateY(24px);}
   .wrap{position:relative; z-index:1;}
   h1,h2,h3{font-family:"Fraunces", Georgia, serif; text-wrap:balance; margin:0;}
   .mono{font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace; font-variant-numeric:tabular-nums;}
@@ -431,6 +432,7 @@
     background:rgba(47,174,122,0.14); padding:2px 4px; border-radius:999px;
   }
   .rr-seat.waiting{color:var(--chip-red); background:rgba(196,58,44,0.14);}
+  .rr-seat:empty{background:none;}
   .rr-status{flex:0 0 auto; display:flex; gap:4px;}
   .rr-btn{
     font-family:"Public Sans", sans-serif; font-size:11px; font-weight:600; white-space:nowrap;
@@ -454,6 +456,13 @@
   }
   .rr-note:focus{outline:2px solid var(--felt-2); outline-offset:1px; border-color:var(--felt-2);}
   .rr-note:disabled{background:var(--surface-2); color:var(--ink-faint);}
+
+  .hist-list{display:flex; flex-direction:column; gap:1px; border-radius:10px; overflow:hidden; border:1px solid var(--line-soft); margin-top:12px;}
+  .hist-row{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 12px; padding:10px 14px; background:var(--surface); border-bottom:1px solid var(--line-soft);}
+  .hist-row:last-child{border-bottom:none;}
+  .hist-name{font-weight:600; font-size:14px; flex:1 1 auto;}
+  .hist-stat{font-size:12.5px; color:var(--ink-soft);}
+  .hist-stat.mono{font-family:"IBM Plex Mono", monospace; color:var(--ink-faint); font-size:11.5px;}
 
   ::selection{background:var(--brass); color:#241B09;}
 </style>
@@ -684,6 +693,12 @@
       +   '<p class="hint" style="margin-top:0">Click your status to RSVP — it saves instantly and everyone sees it live.</p>'
       +   '<div id="rsvpTable" class="rsvp-table"></div>'
       +   '<p id="emptyRoster" class="hint" hidden>No players listed yet — add names via Edit.</p>'
+      + '</section>'
+      + '<section class="card">'
+      +   '<h2>History</h2>'
+      +   '<p class="hint" style="margin-top:0">How often everyone has come, across every month tracked.</p>'
+      +   '<button type="button" class="btn-ghost" id="historyToggle">View attendance history</button>'
+      +   '<div id="historyPanel" hidden></div>'
       + '</section>';
   }
 
@@ -712,20 +727,25 @@
       document.getElementById("editPanel").classList.remove("open");
     });
 
+    // data-id on each row is the stable per-person slug, not the database
+    // row id — the database id also bakes in the current game_date (see
+    // rowIdFor) so each month's response becomes its own row instead of
+    // overwriting last month's, which is what makes history possible.
     var rsvpTable = document.getElementById("rsvpTable");
     rsvpTable.addEventListener("click", function(ev){
       var row = ev.target.closest(".rr-row");
       if (!row) return;
-      var id = row.getAttribute("data-id");
+      var personSlug = row.getAttribute("data-id");
       var name = row.getAttribute("data-name");
-      var existing = state.rsvps.find(function(r){ return r.id === id; });
+      var existing = state.rsvps.find(function(r){ return slugify(r.name) === personSlug; });
+      var dbId = existing ? existing.id : rowIdFor(name);
 
       if (ev.target.matches(".rr-btn")){
         var clicked = ev.target.getAttribute("data-status");
         if (existing && existing.status === clicked){
-          removeRsvp(id);
+          removeRsvp(dbId);
         } else {
-          submitRsvp(id, {
+          submitRsvp(dbId, {
             name: name,
             status: clicked,
             guests: clicked === "in" ? (existing ? existing.guests : 0) : 0,
@@ -739,17 +759,19 @@
         if (!existing || existing.status !== "in") return;
         var g = Number(existing.guests) || 0;
         g = ev.target.matches(".rr-minus") ? Math.max(0, g - 1) : Math.min(6, g + 1);
-        submitRsvp(id, { name: existing.name, status: "in", guests: g, note: existing.note, createdAt: existing.createdAt });
+        submitRsvp(dbId, { name: existing.name, status: "in", guests: g, note: existing.note, createdAt: existing.createdAt });
       }
     });
     rsvpTable.addEventListener("input", debounce(function(ev){
       if (!ev.target.matches(".rr-note")) return;
       var row = ev.target.closest(".rr-row");
-      var id = row.getAttribute("data-id");
-      var existing = state.rsvps.find(function(r){ return r.id === id; });
+      var personSlug = row.getAttribute("data-id");
+      var existing = state.rsvps.find(function(r){ return slugify(r.name) === personSlug; });
       if (!existing) return;
-      submitRsvp(id, { name: existing.name, status: existing.status, guests: existing.guests, note: ev.target.value.trim(), createdAt: existing.createdAt });
+      submitRsvp(existing.id, { name: existing.name, status: existing.status, guests: existing.guests, note: ev.target.value.trim(), createdAt: existing.createdAt });
     }, 600));
+
+    document.getElementById("historyToggle").addEventListener("click", loadHistory);
 
     refreshHeader();
     refreshRsvpTable();
@@ -787,6 +809,12 @@
     var s = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     return s || ("p" + Math.random().toString(16).slice(2));
   }
+  // The database row id bakes in the current game_date, so each month's
+  // response is its own row instead of overwriting last month's — that's
+  // what lets attendance history accumulate instead of being erased.
+  function rowIdFor(name){
+    return slugify(name) + "@" + state.gameDateKey;
+  }
   // Accepts names separated by commas, newlines, or both — whichever way
   // someone pastes the list in, it splits into individual players instead
   // of treating the whole block as one name.
@@ -807,19 +835,21 @@
     function btn(kind, label){
       return '<button type="button" class="rr-btn' + (status === kind ? " active" : "") + '" data-status="' + kind + '">' + label + "</button>";
     }
-    var seatText = status === "in" ? (waiting ? "waitlisted" : "seat " + seatNum) : "";
+    // Seat numbers are gone — only the waitlisted flag still shows, since
+    // that's a status worth knowing, not just a count.
+    var seatText = status === "in" && waiting ? "waitlisted" : "";
     var seatClass = "rr-seat" + (status === "in" && waiting ? " waiting" : "");
     // The guest stepper stays in the DOM and keeps its column width even
     // when hidden (visibility, not display/hidden), so the note field
     // always starts at the same x-position regardless of a row's status.
     var guestsStyle = status === "in" ? "" : ' style="visibility:hidden"';
     return ""
-      + '<div class="rr-row" data-id="' + esc(r.id) + '" data-name="' + esc(r.name) + '">'
+      + '<div class="rr-row" data-id="' + esc(slugify(r.name)) + '" data-name="' + esc(r.name) + '">'
       +   '<span class="rr-name">' + esc(r.name) + "</span>"
       +   '<span class="' + seatClass + '">' + seatText + "</span>"
       +   '<div class="rr-status">' + btn("in", "In") + btn("maybe", "Maybe") + btn("out", "Can’t") + "</div>"
       +     '<div class="rr-guests"' + guestsStyle + '>'
-      +       '<button type="button" class="rr-minus">−</button><span class="rr-count">' + (Number(r.guests) || 0) + '</span><button type="button" class="rr-plus">+</button>'
+      +       '<button type="button" class="rr-minus">−</button><span class="rr-count">' + (1 + (Number(r.guests) || 0)) + '</span><button type="button" class="rr-plus">+</button>'
       +     "</div>"
       +     '<input type="text" class="rr-note" placeholder="note" value="' + esc(r.note || "") + '"' + (status ? "" : " disabled") + ">"
       +   "</div>"
@@ -844,11 +874,13 @@
     var focusedId = focused ? focused.closest(".rr-row").getAttribute("data-id") : null;
     var caretPos = focused ? focused.selectionStart : null;
 
+    // Keyed by the stable person slug, not r.id — r.id now bakes in the
+    // game_date (see rowIdFor) so it differs from slugify(r.name).
     var byId = {};
-    state.rsvps.forEach(function(r){ byId[r.id] = r; });
+    state.rsvps.forEach(function(r){ byId[slugify(r.name)] = r; });
     var seating = computeSeating(state.rsvps, MAX_SEATS);
-    var confirmedIdx = {}; seating.confirmed.forEach(function(r, i){ confirmedIdx[r.id] = i + 1; });
-    var waitlistIds = {}; seating.waitlist.forEach(function(r){ waitlistIds[r.id] = true; });
+    var confirmedIdx = {}; seating.confirmed.forEach(function(r, i){ confirmedIdx[slugify(r.name)] = i + 1; });
+    var waitlistIds = {}; seating.waitlist.forEach(function(r){ waitlistIds[slugify(r.name)] = true; });
 
     var rosterSlugs = {};
     var entries = names.map(function(name){
@@ -857,7 +889,7 @@
       return byId[id] || { id: id, name: name, status: null, guests: 0, note: "" };
     });
     state.rsvps.forEach(function(r){
-      if (!rosterSlugs[r.id]) entries.push(r);
+      if (!rosterSlugs[slugify(r.name)]) entries.push(r);
     });
 
     var statusRank = { in: 0, maybe: 1, out: 2 };
@@ -866,14 +898,15 @@
       var rb = b.status ? statusRank[b.status] : 3;
       if (ra !== rb) return ra - rb;
       if (a.status === "in"){
-        var aw = waitlistIds[a.id] ? 1 : 0, bw = waitlistIds[b.id] ? 1 : 0;
+        var aSlug = slugify(a.name), bSlug = slugify(b.name);
+        var aw = waitlistIds[aSlug] ? 1 : 0, bw = waitlistIds[bSlug] ? 1 : 0;
         if (aw !== bw) return aw - bw;
-        return (confirmedIdx[a.id] || 999) - (confirmedIdx[b.id] || 999);
+        return (confirmedIdx[aSlug] || 999) - (confirmedIdx[bSlug] || 999);
       }
       return 0; // stable sort keeps roster order among ties
     });
 
-    var rows = entries.map(function(r){ return rsvpRowHtml(r, confirmedIdx[r.id], waitlistIds[r.id]); });
+    var rows = entries.map(function(r){ var s = slugify(r.name); return rsvpRowHtml(r, confirmedIdx[s], waitlistIds[s]); });
 
     if (rows.length === 0){
       container.innerHTML = "";
@@ -957,6 +990,49 @@
     state.db.from("rsvps").delete().eq("id", id).then(function(res){
       if (res.error) showBanner("Couldn’t remove your RSVP: " + res.error.message);
     });
+  }
+
+  // Tallies every RSVP ever recorded (across all months) per person, since
+  // each month now gets its own row (see rowIdFor) instead of overwriting
+  // the last one.
+  function computeHistory(rows){
+    var byName = {};
+    rows.forEach(function(r){
+      if (!byName[r.name]) byName[r.name] = { name: r.name, in: 0, maybe: 0, out: 0, months: {} };
+      var e = byName[r.name];
+      if (r.status === "in") e.in++;
+      else if (r.status === "maybe") e.maybe++;
+      else if (r.status === "out") e.out++;
+      if (r.game_date) e.months[r.game_date] = true;
+    });
+    return Object.keys(byName).map(function(k){
+      var e = byName[k];
+      return { name: e.name, in: e.in, maybe: e.maybe, out: e.out, tracked: Object.keys(e.months).length };
+    }).sort(function(a, b){ return b.in - a.in || a.name.localeCompare(b.name); });
+  }
+
+  function renderHistory(list){
+    if (list.length === 0) return '<p class="hint">No history yet — it fills in once a month or two has passed.</p>';
+    return '<div class="hist-list">' + list.map(function(e){
+      return '<div class="hist-row">'
+        + '<span class="hist-name">' + esc(e.name) + '</span>'
+        + '<span class="hist-stat">In ' + e.in + '</span>'
+        + '<span class="hist-stat">Maybe ' + e.maybe + '</span>'
+        + '<span class="hist-stat">Can’t ' + e.out + '</span>'
+        + '<span class="hist-stat mono">' + e.tracked + ' month' + (e.tracked === 1 ? '' : 's') + ' tracked</span>'
+        + '</div>';
+    }).join('') + '</div>';
+  }
+
+  async function loadHistory(){
+    var panel = document.getElementById("historyPanel");
+    if (!panel.hidden){ panel.hidden = true; return; }
+    panel.hidden = false;
+    panel.innerHTML = '<p class="hint">Loading…</p>';
+    if (!state.db){ panel.innerHTML = '<p class="hint">Not connected to the database.</p>'; return; }
+    var res = await state.db.from("rsvps").select("name,status,game_date");
+    if (res.error){ panel.innerHTML = '<p class="hint">Couldn’t load history: ' + esc(res.error.message) + '</p>'; return; }
+    panel.innerHTML = renderHistory(computeHistory(res.data || []));
   }
 
   function showBanner(text){
