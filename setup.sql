@@ -42,6 +42,12 @@ create index if not exists rsvps_game_date_idx on rsvps (game_date);
 alter table event_details add column if not exists game_type text;
 alter table event_details add column if not exists override_key text;
 
+-- roster: comma-separated names of the regular players. The app renders
+-- one clickable row per name so guests pick their own name and set their
+-- status instead of typing it — edit this list anytime from the app's
+-- Edit panel, no SQL needed after this.
+alter table event_details add column if not exists roster text;
+
 alter table event_details enable row level security;
 alter table rsvps enable row level security;
 

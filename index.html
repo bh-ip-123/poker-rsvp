@@ -230,6 +230,18 @@
   }
   input:focus{outline:2px solid var(--felt-2); outline-offset:1px; border-color:var(--felt-2);}
   input[type=number], input[type=date], input[type=time]{font-family:"IBM Plex Mono", monospace;}
+  textarea{
+    font-family:"Public Sans", sans-serif;
+    font-size:15px;
+    color:var(--ink);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:10px 12px;
+    font-weight:400;
+    resize:vertical;
+  }
+  textarea:focus{outline:2px solid var(--felt-2); outline-offset:1px; border-color:var(--felt-2);}
 
   .status-toggle{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;}
   .status-btn{
@@ -349,7 +361,42 @@
 
   .muted-list{color:var(--ink-faint); font-size:13.5px; margin:0; line-height:1.6;}
 
-  #emptyRoster{display:none;}
+  /* ---------- Clickable RSVP table ---------- */
+  .rsvp-table{display:flex; flex-direction:column; border-radius:10px; overflow:hidden; border:1px solid var(--line-soft); margin-top:14px;}
+  .rr-row{
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px;
+    padding:12px 14px; background:var(--surface); border-bottom:1px solid var(--line-soft);
+  }
+  .rr-row:last-child{border-bottom:none;}
+  .rr-name{font-weight:600; font-size:14.5px; flex:1 1 auto; min-width:80px;}
+  .rr-seat{
+    font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--felt-2);
+    background:rgba(47,174,122,0.14); padding:1px 7px; border-radius:999px; flex:none;
+  }
+  .rr-seat.waiting{color:var(--chip-red); background:rgba(196,58,44,0.14);}
+  .rr-status{display:flex; gap:6px; flex:none;}
+  .rr-btn{
+    font-family:"Public Sans", sans-serif; font-size:12px; font-weight:600;
+    padding:6px 10px; border-radius:7px; border:1.5px solid var(--line);
+    background:var(--surface); color:var(--ink-soft); cursor:pointer;
+  }
+  .rr-btn:hover{border-color:var(--felt-2);}
+  .rr-btn.active[data-status="in"]{background:var(--felt); border-color:var(--felt); color:var(--felt-ink);}
+  .rr-btn.active[data-status="maybe"]{background:var(--brass); border-color:var(--brass); color:#241505;}
+  .rr-btn.active[data-status="out"]{background:var(--chip-red); border-color:var(--chip-red); color:#FFF3F1;}
+  .rr-guests{display:flex; align-items:center; gap:6px; flex:none;}
+  .rr-guests button{
+    width:22px; height:22px; border-radius:50%; border:1.5px solid var(--felt-2);
+    background:var(--surface); color:var(--felt-2); font-size:13px; line-height:1; cursor:pointer; font-family:inherit;
+  }
+  .rr-guests button:hover{background:var(--felt-2); color:var(--felt-ink);}
+  .rr-guests span{font-family:"IBM Plex Mono", monospace; font-size:13px; min-width:12px; text-align:center;}
+  .rr-note{
+    flex:1 1 140px; min-width:0; font-family:"Public Sans", sans-serif; font-size:13px;
+    color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:7px; padding:6px 9px;
+  }
+  .rr-note:focus{outline:2px solid var(--felt-2); outline-offset:1px; border-color:var(--felt-2);}
+  .rr-note:disabled{background:var(--surface-2); color:var(--ink-faint);}
 
   ::selection{background:var(--brass); color:#241B09;}
 </style>
@@ -366,7 +413,6 @@
 
   var SUPABASE_URL = "https://yyzkqvejcyxpigfdjuee.supabase.co";
   var SUPABASE_ANON_KEY = "sb_publishable_hGpWisL0tTeT5HHeaTli-Q_yNieIiy4";
-  var STORAGE_KEY = "dealMeIn:rsvpId";
   var ORGANIZER_NAME = "Barry";
   var BUY_IN = 60;
   var MAX_SEATS = 10;
@@ -377,27 +423,12 @@
     db: null
   };
 
-  var view = { mode: null, mainMounted: false, prefilled: false, editOpen: false, formStatus: "in", formGuests: 0, myId: null };
+  var view = { mode: null, mainMounted: false, editOpen: false };
 
   function esc(s){
     return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
       return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
     });
-  }
-
-  function getMyId(){
-    if (view.myId) return view.myId;
-    try {
-      var id = localStorage.getItem(STORAGE_KEY);
-      if (!id){
-        id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("g" + Date.now() + Math.random().toString(16).slice(2));
-        localStorage.setItem(STORAGE_KEY, id);
-      }
-      view.myId = id;
-    } catch(e){
-      view.myId = "local-" + Date.now();
-    }
-    return view.myId;
   }
 
   // The game always falls on the fourth Thursday of the month at 8:00 PM
@@ -500,6 +531,7 @@
       +       '<label>Time <input type="time" name="time" id="fTime" required></label>'
       +     '</div>'
       +     '<label>Game type <input name="gameType" id="fGameType" value="Texas Holdem Cash Game with Rebuys" required></label>'
+      +     '<label>Players <textarea name="roster" id="fRoster" rows="2" placeholder="Comma-separated, e.g. Barry, Mike, Dave, Steve" required></textarea></label>'
       +     '<button type="submit" class="btn-primary">Create invite</button>'
       +   '</form>'
       + '</section>';
@@ -531,6 +563,7 @@
       var details = {
         location: document.getElementById("fLocation").value.trim(),
         gameType: document.getElementById("fGameType").value.trim() || "Texas Holdem Cash Game with Rebuys",
+        roster: document.getElementById("fRoster").value.trim(),
         date: document.getElementById("fDate").value,
         time: document.getElementById("fTime").value,
         overrideKey: gameDateKey(currentGameDateParts(new Date()))
@@ -573,34 +606,16 @@
       +         '<label>Time <input type="time" name="time" id="eTime" required></label>'
       +       '</div>'
       +       '<label>Game type <input name="gameType" id="eGameType" required></label>'
+      +       '<label>Players <textarea name="roster" id="eRoster" rows="2" required></textarea></label>'
       +       '<button type="submit" class="btn-primary">Save changes</button>'
       +     '</form>'
       +   '</div>'
       + '</section>'
-      + '<section class="card">'
-      +   '<h2 id="rsvpHeading">Your RSVP</h2>'
-      +   '<p class="hint" id="rsvpHint">Let the table know if you’re in.</p>'
-      +   '<form id="rsvpForm">'
-      +     '<label>Name <input name="name" id="rName" required></label>'
-      +     '<div class="status-toggle" role="radiogroup" aria-label="RSVP status">'
-      +       '<button type="button" class="status-btn" data-status="in">I’m in</button>'
-      +       '<button type="button" class="status-btn" data-status="maybe">Maybe</button>'
-      +       '<button type="button" class="status-btn" data-status="out">Can’t make it</button>'
-      +     '</div>'
-      +     '<div class="guest-row" id="guestRow" hidden>'
-      +       '<span>Bringing extra seats?</span>'
-      +       '<div class="stepper"><button type="button" id="guestMinus">−</button><span id="guestCount">0</span><button type="button" id="guestPlus">+</button></div>'
-      +     '</div>'
-      +     '<label>Note <input name="note" id="rNote" placeholder="Optional — snacks, chips, running late…"></label>'
-      +     '<button type="submit" class="btn-primary" id="rsvpSubmitBtn">RSVP</button>'
-      +     '<button type="button" class="btn-ghost" id="removeRsvpBtn" hidden>Remove my RSVP</button>'
-      +   '</form>'
-      + '</section>'
       + '<section class="card roster">'
-      +   '<h2>Who’s responded</h2>'
-      +   '<p class="hint" style="margin-top:0">Everyone who’s replied, all in one place.</p>'
-      +   '<div id="rosterList" class="roster-list"></div>'
-      +   '<p id="emptyRoster" class="hint">No RSVPs yet — be the first.</p>'
+      +   '<h2>Table</h2>'
+      +   '<p class="hint" style="margin-top:0">Click your status to RSVP — it saves instantly and everyone sees it live.</p>'
+      +   '<div id="rsvpTable" class="rsvp-table"></div>'
+      +   '<p id="emptyRoster" class="hint" hidden>No players listed yet — add names via Edit.</p>'
       + '</section>';
   }
 
@@ -619,6 +634,7 @@
       var details = {
         location: document.getElementById("eLocation").value.trim(),
         gameType: document.getElementById("eGameType").value.trim() || "Texas Holdem Cash Game with Rebuys",
+        roster: document.getElementById("eRoster").value.trim(),
         date: document.getElementById("eDate").value,
         time: document.getElementById("eTime").value,
         overrideKey: gameDateKey(currentGameDateParts(new Date()))
@@ -628,67 +644,54 @@
       document.getElementById("editPanel").classList.remove("open");
     });
 
-    var statusBtns = Array.prototype.slice.call(document.querySelectorAll(".status-btn"));
-    statusBtns.forEach(function(btn){
-      btn.addEventListener("click", function(){
-        view.formStatus = btn.getAttribute("data-status");
-        statusBtns.forEach(function(b){ b.classList.toggle("active", b === btn); });
-        document.getElementById("guestRow").hidden = (view.formStatus !== "in");
-      });
-    });
-    document.getElementById("guestMinus").addEventListener("click", function(){
-      view.formGuests = Math.max(0, view.formGuests - 1);
-      document.getElementById("guestCount").textContent = view.formGuests;
-    });
-    document.getElementById("guestPlus").addEventListener("click", function(){
-      view.formGuests = Math.min(6, view.formGuests + 1);
-      document.getElementById("guestCount").textContent = view.formGuests;
-    });
+    var rsvpTable = document.getElementById("rsvpTable");
+    rsvpTable.addEventListener("click", function(ev){
+      var row = ev.target.closest(".rr-row");
+      if (!row) return;
+      var id = row.getAttribute("data-id");
+      var name = row.getAttribute("data-name");
+      var existing = state.rsvps.find(function(r){ return r.id === id; });
 
-    document.getElementById("rsvpForm").addEventListener("submit", function(ev){
-      ev.preventDefault();
-      var name = document.getElementById("rName").value.trim();
-      if (!name) return;
-      var existing = state.rsvps.find(function(r){ return r.id === getMyId(); });
-      var data = {
-        name: name,
-        status: view.formStatus,
-        guests: view.formStatus === "in" ? view.formGuests : 0,
-        note: document.getElementById("rNote").value.trim(),
-        createdAt: existing ? existing.createdAt : Date.now()
-      };
-      submitRsvp(getMyId(), data);
-      var btn = document.getElementById("rsvpSubmitBtn");
-      var original = existing ? "Update RSVP" : "RSVP";
-      btn.textContent = "Saved ✓";
-      setTimeout(function(){ btn.textContent = original; }, 1400);
-      document.getElementById("removeRsvpBtn").hidden = false;
+      if (ev.target.matches(".rr-btn")){
+        var clicked = ev.target.getAttribute("data-status");
+        if (existing && existing.status === clicked){
+          removeRsvp(id);
+        } else {
+          submitRsvp(id, {
+            name: name,
+            status: clicked,
+            guests: clicked === "in" ? (existing ? existing.guests : 0) : 0,
+            note: existing ? existing.note : "",
+            createdAt: existing ? existing.createdAt : Date.now()
+          });
+        }
+        return;
+      }
+      if (ev.target.matches(".rr-minus") || ev.target.matches(".rr-plus")){
+        if (!existing || existing.status !== "in") return;
+        var g = Number(existing.guests) || 0;
+        g = ev.target.matches(".rr-minus") ? Math.max(0, g - 1) : Math.min(6, g + 1);
+        submitRsvp(id, { name: existing.name, status: "in", guests: g, note: existing.note, createdAt: existing.createdAt });
+      }
     });
-    document.getElementById("removeRsvpBtn").addEventListener("click", function(){
-      removeRsvp(getMyId());
-      document.getElementById("rsvpForm").reset();
-      view.formStatus = "in";
-      view.formGuests = 0;
-      statusBtns.forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-status") === "in"); });
-      document.getElementById("guestCount").textContent = "0";
-      document.getElementById("guestRow").hidden = false;
-      document.getElementById("removeRsvpBtn").hidden = true;
-      document.getElementById("rsvpSubmitBtn").textContent = "RSVP";
-    });
-
-    // default active status button
-    statusBtns.forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-status") === view.formStatus); });
-    document.getElementById("guestRow").hidden = (view.formStatus !== "in");
+    rsvpTable.addEventListener("input", debounce(function(ev){
+      if (!ev.target.matches(".rr-note")) return;
+      var row = ev.target.closest(".rr-row");
+      var id = row.getAttribute("data-id");
+      var existing = state.rsvps.find(function(r){ return r.id === id; });
+      if (!existing) return;
+      submitRsvp(id, { name: existing.name, status: existing.status, guests: existing.guests, note: ev.target.value.trim(), createdAt: existing.createdAt });
+    }, 600));
 
     refreshHeader();
-    refreshRoster();
-    maybePrefillForm();
+    refreshRsvpTable();
   }
 
   function fillEditForm(){
     var e = state.event || {};
     document.getElementById("eLocation").value = e.location || "";
     document.getElementById("eGameType").value = e.gameType || "Texas Holdem Cash Game with Rebuys";
+    document.getElementById("eRoster").value = e.roster || "";
     var autoKeyNow = gameDateKey(currentGameDateParts(new Date()));
     var overrideActive = e.overrideKey === autoKeyNow && e.date;
     document.getElementById("eDate").value = state.gameDateKey || autoKeyNow;
@@ -712,66 +715,90 @@
     document.getElementById("mSeatNote").textContent = note;
   }
 
-  function seatRowHtml(idx, r, kind){
-    var badgeText = kind === "in" ? (r.guests > 0 ? ("in · party of " + (1 + Number(r.guests))) : "in")
-      : kind === "waitlist" ? "waitlisted"
-      : kind === "maybe" ? "maybe"
-      : "can’t make it";
-    return ''
-      + '<div class="seat-row status-' + kind + '">'
-      +   '<span class="idx">' + (idx != null ? String(idx).padStart(2,"0") : "—") + '</span>'
-      +   '<span class="who">' + esc(r.name) + '</span>'
-      +   '<span class="badge">' + badgeText + '</span>'
-      +   (r.note ? '<span class="note">' + esc(r.note) + '</span>' : '')
-      + '</div>';
+  function slugify(name){
+    var s = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    return s || ("p" + Math.random().toString(16).slice(2));
+  }
+  function parseRoster(rosterStr){
+    return (rosterStr || "").split(",").map(function(s){ return s.trim(); }).filter(Boolean);
+  }
+  function debounce(fn, wait){
+    var t;
+    return function(){
+      var args = arguments, ctx = this;
+      clearTimeout(t);
+      t = setTimeout(function(){ fn.apply(ctx, args); }, wait);
+    };
   }
 
-  // One combined view: confirmed seats first (numbered), then waitlisted,
-  // then maybes, then declines — everyone visible together, nothing hidden.
-  function refreshRoster(){
+  function rsvpRowHtml(r, seatNum, waiting){
+    var status = r.status || "";
+    function btn(kind, label){
+      return '<button type="button" class="rr-btn' + (status === kind ? " active" : "") + '" data-status="' + kind + '">' + label + "</button>";
+    }
+    var seatBadge = "";
+    if (status === "in"){
+      seatBadge = waiting ? '<span class="rr-seat waiting">waitlisted</span>' : '<span class="rr-seat">seat ' + seatNum + "</span>";
+    }
+    return ""
+      + '<div class="rr-row" data-id="' + esc(r.id) + '" data-name="' + esc(r.name) + '">'
+      +   '<span class="rr-name">' + esc(r.name) + "</span>"
+      +   seatBadge
+      +   '<div class="rr-status">' + btn("in", "In") + btn("maybe", "Maybe") + btn("out", "Can’t") + "</div>"
+      +   '<div class="rr-guests"' + (status === "in" ? "" : " hidden") + '>'
+      +     '<button type="button" class="rr-minus">−</button><span class="rr-count">' + (Number(r.guests) || 0) + '</span><button type="button" class="rr-plus">+</button>'
+      +   "</div>"
+      +   '<input type="text" class="rr-note" placeholder="note" value="' + esc(r.note || "") + '"' + (status ? "" : " disabled") + ">"
+      + "</div>";
+  }
+
+  // One clickable row per player. Confirmed seats show a seat number,
+  // overflow shows "waitlisted" — nothing is hidden or split into
+  // separate sections, so anyone can see the full picture at a glance.
+  // Preserves focus/caret on the note currently being typed into, since
+  // this rebuilds the whole list on every change (including from others).
+  function refreshRsvpTable(){
     var e = state.event;
     if (!e) return;
-    var seating = computeSeating(state.rsvps, MAX_SEATS);
-    var maybes = state.rsvps.filter(function(r){ return r.status === "maybe"; });
-    var outs = state.rsvps.filter(function(r){ return r.status === "out"; });
-
-    var rosterList = document.getElementById("rosterList");
+    var container = document.getElementById("rsvpTable");
     var emptyRoster = document.getElementById("emptyRoster");
+    var names = parseRoster(e.roster);
 
-    if (state.rsvps.length === 0){
-      rosterList.innerHTML = "";
-      rosterList.style.display = "none";
-      emptyRoster.style.display = "block";
+    var focused = document.activeElement && document.activeElement.matches(".rr-note") ? document.activeElement : null;
+    var focusedId = focused ? focused.closest(".rr-row").getAttribute("data-id") : null;
+    var caretPos = focused ? focused.selectionStart : null;
+
+    var byId = {};
+    state.rsvps.forEach(function(r){ byId[r.id] = r; });
+    var seating = computeSeating(state.rsvps, MAX_SEATS);
+    var confirmedIdx = {}; seating.confirmed.forEach(function(r, i){ confirmedIdx[r.id] = i + 1; });
+    var waitlistIds = {}; seating.waitlist.forEach(function(r){ waitlistIds[r.id] = true; });
+
+    var rosterSlugs = {};
+    var rows = names.map(function(name){
+      var id = slugify(name);
+      rosterSlugs[id] = true;
+      var r = byId[id] || { id: id, name: name, status: null, guests: 0, note: "" };
+      return rsvpRowHtml(r, confirmedIdx[id], waitlistIds[id]);
+    });
+    state.rsvps.forEach(function(r){
+      if (!rosterSlugs[r.id]) rows.push(rsvpRowHtml(r, confirmedIdx[r.id], waitlistIds[r.id]));
+    });
+
+    if (rows.length === 0){
+      container.innerHTML = "";
+      container.style.display = "none";
+      emptyRoster.hidden = false;
       return;
     }
-    rosterList.style.display = "";
-    emptyRoster.style.display = "none";
+    container.style.display = "";
+    emptyRoster.hidden = true;
+    container.innerHTML = rows.join("");
 
-    var rows = [];
-    seating.confirmed.forEach(function(r, i){ rows.push(seatRowHtml(i + 1, r, "in")); });
-    seating.waitlist.forEach(function(r){ rows.push(seatRowHtml(null, r, "waitlist")); });
-    maybes.forEach(function(r){ rows.push(seatRowHtml(null, r, "maybe")); });
-    outs.forEach(function(r){ rows.push(seatRowHtml(null, r, "out")); });
-    rosterList.innerHTML = rows.join("");
-  }
-
-  function maybePrefillForm(){
-    if (view.prefilled) return;
-    var mine = state.rsvps.find(function(r){ return r.id === getMyId(); });
-    if (!mine) return;
-    view.prefilled = true;
-    document.getElementById("rName").value = mine.name || "";
-    document.getElementById("rNote").value = mine.note || "";
-    view.formStatus = mine.status || "in";
-    view.formGuests = Number(mine.guests) || 0;
-    document.querySelectorAll(".status-btn").forEach(function(b){
-      b.classList.toggle("active", b.getAttribute("data-status") === view.formStatus);
-    });
-    document.getElementById("guestRow").hidden = (view.formStatus !== "in");
-    document.getElementById("guestCount").textContent = view.formGuests;
-    document.getElementById("rsvpSubmitBtn").textContent = "Update RSVP";
-    document.getElementById("removeRsvpBtn").hidden = false;
-    document.getElementById("rsvpHint").textContent = "You’re on the list. Update anytime.";
+    if (focusedId){
+      var el = container.querySelector('.rr-row[data-id="' + CSS.escape(focusedId) + '"] .rr-note');
+      if (el){ el.focus(); if (caretPos != null) el.setSelectionRange(caretPos, caretPos); }
+    }
   }
 
   /* ---------------- Render dispatch ---------------- */
@@ -781,18 +808,13 @@
     if (mode !== view.mode){
       view.mode = mode;
       view.mainMounted = false;
-      view.prefilled = false;
       if (mode === "setup") mountSetup();
       else mountMain();
       return;
     }
     if (mode === "main" && view.mainMounted){
       refreshHeader();
-      refreshRoster();
-      maybePrefillForm();
-      if (view.editOpen === false){
-        // keep edit form in sync with latest data for next open; harmless since hidden
-      }
+      refreshRsvpTable();
     }
   }
 
@@ -800,13 +822,13 @@
 
   function dbRowToEvent(row){
     return {
-      location: row.location, gameType: row.game_type,
+      location: row.location, gameType: row.game_type, roster: row.roster || "",
       date: row.date, time: row.time, overrideKey: row.override_key || null
     };
   }
   function eventToDbRow(e){
     return {
-      id: "main", location: e.location, game_type: e.gameType,
+      id: "main", location: e.location, game_type: e.gameType, roster: e.roster,
       date: e.date, time: e.time, override_key: e.overrideKey
     };
   }
