@@ -77,26 +77,6 @@
     -webkit-font-smoothing:antialiased;
   }
 
-  /* A big fanned hand fixed in view, sitting right on the felt backdrop —
-     the page itself reads as a poker table, with the cream cards/invite
-     floating on top of it. Centered and fully on-screen (not cropped
-     into a corner) so it actually reads clearly rather than as a sliver. */
-  .table-bg{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;}
-  .table-bg .hand{position:absolute; bottom:24px; left:50%; transform:translateX(-50%); display:flex; opacity:0.95;}
-  .table-bg .tb-card{
-    width:150px; height:210px; border-radius:14px; margin-left:-56px;
-    background:#FBF8EE; border:2px solid var(--brass);
-    box-shadow:0 14px 32px rgba(0,0,0,0.4);
-    display:flex; align-items:center; justify-content:center;
-    font-family:"IBM Plex Mono", monospace; font-weight:700; font-size:48px;
-    color:#201A10;
-    flex:none;
-  }
-  .table-bg .tb-card:nth-child(1){transform:rotate(-18deg) translateY(24px);}
-  .table-bg .tb-card:nth-child(2){transform:rotate(-9deg) translateY(10px);}
-  .table-bg .tb-card:nth-child(3){transform:rotate(0deg);}
-  .table-bg .tb-card:nth-child(4){transform:rotate(9deg) translateY(10px);}
-  .table-bg .tb-card:nth-child(5){transform:rotate(18deg) translateY(24px);}
   .wrap{position:relative; z-index:1;}
   h1,h2,h3{font-family:"Fraunces", Georgia, serif; text-wrap:balance; margin:0;}
   .mono{font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace; font-variant-numeric:tabular-nums;}
@@ -128,14 +108,17 @@
     overflow:hidden;
     animation:riseIn 0.5s ease-out both;
   }
+  /* Four aces — one of each suit — as a watermark instead of a single
+     spade, standing in for "a strong hand." Visible but see-through. */
   .invite-card::after{
-    content:"♠";
+    content:"♠ ♥ ♦ ♣";
     position:absolute;
-    right:-8px;
-    top:-24px;
+    right:-10px;
+    top:-14px;
     font-family:"Fraunces", serif;
-    font-size:150px;
-    color:rgba(255,255,255,0.045);
+    font-size:52px;
+    letter-spacing:-2px;
+    color:rgba(255,255,255,0.18);
     line-height:1;
     pointer-events:none;
   }
@@ -466,16 +449,6 @@
 
   ::selection{background:var(--brass); color:#241B09;}
 </style>
-
-<div class="table-bg" aria-hidden="true">
-  <div class="hand">
-    <span class="tb-card">A♠</span>
-    <span class="tb-card">K♠</span>
-    <span class="tb-card">Q♠</span>
-    <span class="tb-card">J♠</span>
-    <span class="tb-card">10♠</span>
-  </div>
-</div>
 
 <div class="wrap">
   <div id="banner" class="banner" hidden></div>
