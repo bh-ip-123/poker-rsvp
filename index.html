@@ -422,8 +422,7 @@
   }
   .rr-row:last-child{border-bottom:none;}
   .rr-name{
-    flex:0 1 92px; min-width:46px;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    flex:0 0 auto; white-space:nowrap;
     font-weight:600; font-size:14px;
   }
   .rr-seat{
@@ -917,6 +916,14 @@
     container.style.display = "";
     emptyRoster.hidden = true;
     container.innerHTML = rows.join("");
+
+    // Size every name column to whichever name is actually longest, so
+    // short names don't get extra padding and long ones don't truncate —
+    // measured after render since it depends on the rendered font.
+    var nameEls = container.querySelectorAll(".rr-name");
+    var maxNameWidth = 0;
+    nameEls.forEach(function(el){ maxNameWidth = Math.max(maxNameWidth, el.scrollWidth); });
+    nameEls.forEach(function(el){ el.style.width = maxNameWidth + "px"; });
 
     if (focusedId){
       var el = container.querySelector('.rr-row[data-id="' + CSS.escape(focusedId) + '"] .rr-note');
