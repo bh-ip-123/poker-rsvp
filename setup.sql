@@ -1,5 +1,7 @@
 -- Deal Me In — Supabase setup
 -- Paste this whole file into Supabase Dashboard → SQL Editor → New query → Run.
+-- Safe to re-run any time (this file is idempotent, even if you ran an
+-- earlier version of it already).
 
 create table if not exists event_details (
   id text primary key default 'main',
@@ -24,6 +26,13 @@ create table if not exists rsvps (
   updated_at timestamptz default now()
 );
 
+-- Tags each RSVP with the game night it belongs to (the app computes this
+-- automatically as the fourth Thursday of the month, 8pm ET — never
+-- entered by hand). Old months' RSVPs just stop matching the current
+-- value and quietly drop out of the roster; nothing needs to be deleted.
+alter table rsvps add column if not exists game_date text;
+create index if not exists rsvps_game_date_idx on rsvps (game_date);
+
 alter table event_details enable row level security;
 alter table rsvps enable row level security;
 
@@ -31,15 +40,35 @@ alter table rsvps enable row level security;
 -- app, same trust model as a shared link) can read and write these two
 -- tables. Fine for a friend group's game night; don't put sensitive data here.
 
+drop policy if exists "public read event" on event_details;
 create policy "public read event" on event_details for select using (true);
+drop policy if exists "public write event" on event_details;
 create policy "public write event" on event_details for insert with check (true);
+drop policy if exists "public update event" on event_details;
 create policy "public update event" on event_details for update using (true) with check (true);
 
+drop policy if exists "public read rsvps" on rsvps;
 create policy "public read rsvps" on rsvps for select using (true);
+drop policy if exists "public write rsvps" on rsvps;
 create policy "public write rsvps" on rsvps for insert with check (true);
+drop policy if exists "public update rsvps" on rsvps;
 create policy "public update rsvps" on rsvps for update using (true) with check (true);
+drop policy if exists "public delete rsvps" on rsvps;
 create policy "public delete rsvps" on rsvps for delete using (true);
 
 -- Live sync: let the app hear changes from other guests in real time.
-alter publication supabase_realtime add table event_details;
-alter publication supabase_realtime add table rsvps;
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'event_details'
+  ) then
+    alter publication supabase_realtime add table event_details;
+  end if;
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'rsvps'
+  ) then
+    alter publication supabase_realtime add table rsvps;
+  end if;
+end $$;

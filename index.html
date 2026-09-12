@@ -283,6 +283,8 @@
     display:none;
   }
   .edit-panel.open{display:block;}
+  .edit-panel .hint{color:rgba(237,231,214,0.7);}
+  .edit-panel label{color:rgba(237,231,214,0.75);}
 
   /* ---------- Roster ---------- */
   .roster-sub{
@@ -381,25 +383,39 @@
     return view.myId;
   }
 
-  function nextThursday(){
-    var d = new Date();
-    var target = 4; // Thursday
-    var diff = (target - d.getDay() + 7) % 7;
-    if (diff === 0) diff = 7;
-    d.setDate(d.getDate() + diff);
-    return d;
+  // The game always falls on the fourth Thursday of the month at 8:00 PM
+  // Eastern Time (DST-aware) — never entered manually, always computed.
+  function getNYParts(date){
+    var fmt = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit"
+    });
+    var obj = {};
+    fmt.formatToParts(date).forEach(function(p){ if (p.type !== "literal") obj[p.type] = p.value; });
+    return { year: Number(obj.year), month: Number(obj.month) - 1, day: Number(obj.day) };
   }
-  function toDateInputValue(d){
-    var y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
-    return y+"-"+m+"-"+day;
+  function fourthThursdayDay(year, month){
+    var d = new Date(Date.UTC(year, month, 1));
+    var dow = d.getUTCDay(); // 0=Sun..6=Sat
+    var firstThursday = 1 + ((4 - dow + 7) % 7);
+    return firstThursday + 21;
   }
-  function formatWhen(dateStr, timeStr){
-    if (!dateStr) return "—";
-    var dt = new Date(dateStr + "T" + (timeStr || "19:00"));
-    if (isNaN(dt.getTime())) return dateStr + " " + (timeStr||"");
-    var dateFmt = dt.toLocaleDateString(undefined, {weekday:"short", month:"short", day:"numeric"});
-    var timeFmt = timeStr ? dt.toLocaleTimeString(undefined, {hour:"numeric", minute:"2-digit"}) : "";
-    return timeFmt ? (dateFmt + " · " + timeFmt) : dateFmt;
+  function currentGameDateParts(now){
+    var t = getNYParts(now);
+    var day = fourthThursdayDay(t.year, t.month);
+    if (t.day > day){
+      var m = t.month + 1, y = t.year;
+      if (m > 11){ m = 0; y += 1; }
+      return { year: y, month: m, day: fourthThursdayDay(y, m) };
+    }
+    return { year: t.year, month: t.month, day: day };
+  }
+  function gameDateKey(p){
+    return p.year + "-" + String(p.month + 1).padStart(2, "0") + "-" + String(p.day).padStart(2, "0");
+  }
+  function formatGameDateDisplay(p){
+    var dt = new Date(Date.UTC(p.year, p.month, p.day));
+    var dateFmt = dt.toLocaleDateString(undefined, {timeZone: "UTC", weekday: "short", month: "short", day: "numeric"});
+    return dateFmt + " · 8:00 PM ET";
   }
 
   function computeSeating(rsvps, maxSeats){
@@ -417,7 +433,6 @@
   /* ---------------- Setup mode ---------------- */
 
   function setupTemplate(){
-    var d = nextThursday();
     return ''
       + '<section class="invite-card" id="previewCard">'
       +   '<div class="invite-top"><span class="eyebrow">Home Game</span></div>'
@@ -436,14 +451,10 @@
       + '</section>'
       + '<section class="card">'
       +   '<h2>Set up the game</h2>'
-      +   '<p class="hint">Fill this in once — the card above updates as you type. Everyone who opens this link afterward will see it.</p>'
+      +   '<p class="hint">The date is automatic — always the fourth Thursday of the month, 8:00 PM Eastern. Fill in the rest once; the card above updates as you type, and everyone who opens this link afterward will see it.</p>'
       +   '<form id="setupForm">'
       +     '<label>Game <input name="game" id="fGame" value="Texas Hold’em" required></label>'
       +     '<label>Host name <input name="hostName" id="fHost" placeholder="Your name" required></label>'
-      +     '<div class="two-col">'
-      +       '<label>Date <input type="date" name="date" id="fDate" value="'+toDateInputValue(d)+'" required></label>'
-      +       '<label>Time <input type="time" name="time" id="fTime" value="19:00" required></label>'
-      +     '</div>'
       +     '<label>Location <input name="location" id="fLocation" placeholder="Address, or “my place”" required></label>'
       +     '<div class="two-col">'
       +       '<label>Buy-in ($) <input type="number" name="buyIn" id="fBuyin" min="0" step="5" value="20" required></label>'
@@ -467,7 +478,8 @@
 
   function mountSetup(){
     document.getElementById("app").innerHTML = setupTemplate();
-    var ids = ["fGame","fHost","fDate","fTime","fLocation","fBuyin","fSeats","fNote"];
+    document.getElementById("pvWhen").textContent = formatGameDateDisplay(currentGameDateParts(new Date()));
+    var ids = ["fGame","fHost","fLocation","fBuyin","fSeats","fNote"];
     ids.forEach(function(id){
       document.getElementById(id).addEventListener("input", updatePreview);
     });
@@ -477,8 +489,6 @@
       var details = {
         game: document.getElementById("fGame").value.trim() || "Poker Night",
         hostName: document.getElementById("fHost").value.trim(),
-        date: document.getElementById("fDate").value,
-        time: document.getElementById("fTime").value,
         location: document.getElementById("fLocation").value.trim(),
         buyIn: Number(document.getElementById("fBuyin").value) || 0,
         maxSeats: Math.max(2, Number(document.getElementById("fSeats").value) || 8),
@@ -491,7 +501,6 @@
   function updatePreview(){
     var max = Math.max(2, Number(document.getElementById("fSeats").value) || 8);
     document.getElementById("pvTitle").textContent = document.getElementById("fGame").value || "Poker Night";
-    document.getElementById("pvWhen").textContent = formatWhen(document.getElementById("fDate").value, document.getElementById("fTime").value);
     document.getElementById("pvWhere").textContent = document.getElementById("fLocation").value.trim() || "—";
     document.getElementById("pvBuyin").textContent = "$" + (Number(document.getElementById("fBuyin").value) || 0);
     document.getElementById("pvHost").textContent = document.getElementById("fHost").value.trim() || "—";
@@ -521,12 +530,9 @@
       +   '<p class="invite-note" id="mNote"></p>'
       +   '<div class="edit-panel" id="editPanel">'
       +     '<form id="editForm">'
+      +       '<p class="hint" style="margin-top:0">The date stays automatic — fourth Thursday of the month, 8:00 PM Eastern.</p>'
       +       '<label>Game <input name="game" id="eGame" required></label>'
       +       '<label>Host name <input name="hostName" id="eHost" required></label>'
-      +       '<div class="two-col">'
-      +         '<label>Date <input type="date" name="date" id="eDate" required></label>'
-      +         '<label>Time <input type="time" name="time" id="eTime" required></label>'
-      +       '</div>'
       +       '<label>Location <input name="location" id="eLocation" required></label>'
       +       '<div class="two-col">'
       +         '<label>Buy-in ($) <input type="number" name="buyIn" id="eBuyin" min="0" step="5" required></label>'
@@ -581,8 +587,6 @@
       var details = {
         game: document.getElementById("eGame").value.trim() || "Poker Night",
         hostName: document.getElementById("eHost").value.trim(),
-        date: document.getElementById("eDate").value,
-        time: document.getElementById("eTime").value,
         location: document.getElementById("eLocation").value.trim(),
         buyIn: Number(document.getElementById("eBuyin").value) || 0,
         maxSeats: Math.max(2, Number(document.getElementById("eSeats").value) || 8),
@@ -654,8 +658,6 @@
     var e = state.event || {};
     document.getElementById("eGame").value = e.game || "";
     document.getElementById("eHost").value = e.hostName || "";
-    document.getElementById("eDate").value = e.date || "";
-    document.getElementById("eTime").value = e.time || "";
     document.getElementById("eLocation").value = e.location || "";
     document.getElementById("eBuyin").value = e.buyIn || 0;
     document.getElementById("eSeats").value = e.maxSeats || 8;
@@ -666,7 +668,7 @@
     var e = state.event;
     if (!e) return;
     document.getElementById("mTitle").textContent = e.game || "Poker Night";
-    document.getElementById("mWhen").textContent = formatWhen(e.date, e.time);
+    document.getElementById("mWhen").textContent = state.gameDateDisplay || formatGameDateDisplay(currentGameDateParts(new Date()));
     document.getElementById("mWhere").textContent = e.location || "—";
     document.getElementById("mBuyin").textContent = "$" + (e.buyIn || 0);
     document.getElementById("mHost").textContent = e.hostName || "—";
@@ -788,14 +790,14 @@
 
   function dbRowToEvent(row){
     return {
-      game: row.game, hostName: row.host_name, date: row.date, time: row.time,
+      game: row.game, hostName: row.host_name,
       location: row.location, buyIn: Number(row.buy_in) || 0,
       maxSeats: Number(row.max_seats) || 8, note: row.note || ""
     };
   }
   function eventToDbRow(e){
     return {
-      id: "main", game: e.game, host_name: e.hostName, date: e.date, time: e.time,
+      id: "main", game: e.game, host_name: e.hostName,
       location: e.location, buy_in: e.buyIn, max_seats: e.maxSeats, note: e.note
     };
   }
@@ -822,7 +824,7 @@
     if (!state.db) return;
     state.db.from("rsvps").upsert({
       id: id, name: data.name, status: data.status, guests: data.guests,
-      note: data.note, created_at: data.createdAt
+      note: data.note, created_at: data.createdAt, game_date: state.gameDateKey
     }).then(function(res){
       if (res.error) showBanner("Couldn’t save your RSVP: " + res.error.message);
     });
@@ -847,11 +849,15 @@
 
   async function refetchAll(){
     var client = state.db;
+    var parts = currentGameDateParts(new Date());
+    state.gameDateKey = gameDateKey(parts);
+    state.gameDateDisplay = formatGameDateDisplay(parts);
+
     var evRes = await client.from("event_details").select("*").eq("id", "main").maybeSingle();
     if (evRes.error){ showBanner("Can’t reach the database: " + evRes.error.message + ". Make sure setup.sql has been run in Supabase."); return; }
     state.event = evRes.data ? dbRowToEvent(evRes.data) : null;
 
-    var rsRes = await client.from("rsvps").select("*").order("created_at", {ascending: true});
+    var rsRes = await client.from("rsvps").select("*").eq("game_date", state.gameDateKey).order("created_at", {ascending: true});
     if (rsRes.error){ showBanner("Can’t reach the database: " + rsRes.error.message); return; }
     state.rsvps = (rsRes.data || []).map(dbRowToRsvp);
     hideBanner();
