@@ -172,6 +172,11 @@
   }
   .meta-item dd{margin:0; font-size:15px; font-weight:500;}
   .meta-item dd.mono{font-size:15px;}
+  .meta-item dd.venue-needed{color:var(--brass-bright); font-weight:700;}
+
+  .venue-banner{margin:10px 0 0; padding:10px 14px; border-radius:9px; font-size:13.5px; font-weight:600;}
+  .venue-banner-needed{background:rgba(227,167,46,0.14); border:1px solid var(--brass); color:var(--brass-strong);}
+  .venue-banner-set{background:rgba(47,174,122,0.12); border:1px solid var(--felt-2); color:var(--ink); font-weight:500;}
 
   .seat-stat{
     margin-top:22px;
@@ -560,7 +565,7 @@
       +   '<h1 class="invite-title">Texas Hold’em</h1>'
       +   '<dl class="meta-grid">'
       +     '<div class="meta-item"><dt>When</dt><dd class="mono" id="pvWhen">—</dd></div>'
-      +     '<div class="meta-item"><dt>Venue</dt><dd id="pvWhere">—</dd></div>'
+      +     '<div class="meta-item"><dt>Venue</dt><dd class="venue-needed">Needs a host</dd></div>'
       +     '<div class="meta-item"><dt>Game type</dt><dd id="pvGameType">—</dd></div>'
       +     '<div class="meta-item"><dt>Buy-in</dt><dd class="mono">$' + BUY_IN + '</dd></div>'
       +     '<div class="meta-item"><dt>Organizer</dt><dd>' + esc(ORGANIZER_NAME) + '</dd></div>'
@@ -575,13 +580,13 @@
       +   '<h2>Set up the game</h2>'
       +   '<p class="hint">The date defaults to the fourth Thursday of the month, 8:00 PM Eastern — adjust it below only if this month needs a one-off change. Fill in the rest once; the card above updates as you type, and everyone who opens this link afterward will see it.</p>'
       +   '<form id="setupForm">'
-      +     '<label>Venue <input name="location" id="fLocation" placeholder="Address, or “my place”" required></label>'
       +     '<div class="two-col">'
       +       '<label>Date <input type="date" name="date" id="fDate" required></label>'
       +       '<label>Time <input type="time" name="time" id="fTime" required></label>'
       +     '</div>'
       +     '<label>Game type <input name="gameType" id="fGameType" value="Texas Holdem Cash Game with Rebuys" required></label>'
       +     '<label>Players <textarea name="roster" id="fRoster" rows="2" placeholder="Comma-separated, e.g. Barry, Mike, Dave, Steve" required></textarea></label>'
+      +     '<p class="hint" style="margin-top:0">Venue isn’t set here — once created, anyone can claim this month’s venue from the Venue card below the invite.</p>'
       +     '<button type="submit" class="btn-primary">Create invite</button>'
       +   '</form>'
       + '</section>';
@@ -603,7 +608,7 @@
     document.getElementById("fDate").value = gameDateKey(autoParts);
     document.getElementById("fTime").value = "20:00";
     renderPips(document.getElementById("pvPips"), MAX_SEATS, 0, 0);
-    var ids = ["fLocation","fDate","fTime","fGameType"];
+    var ids = ["fDate","fTime","fGameType"];
     ids.forEach(function(id){
       document.getElementById(id).addEventListener("input", updatePreview);
     });
@@ -611,7 +616,6 @@
     document.getElementById("setupForm").addEventListener("submit", function(ev){
       ev.preventDefault();
       var details = {
-        location: document.getElementById("fLocation").value.trim(),
         gameType: document.getElementById("fGameType").value.trim() || "Texas Holdem Cash Game with Rebuys",
         roster: document.getElementById("fRoster").value.trim(),
         date: document.getElementById("fDate").value,
@@ -624,7 +628,6 @@
 
   function updatePreview(){
     document.getElementById("pvWhen").textContent = formatEffectiveWhen(document.getElementById("fDate").value, document.getElementById("fTime").value);
-    document.getElementById("pvWhere").textContent = document.getElementById("fLocation").value.trim() || "—";
     document.getElementById("pvGameType").textContent = document.getElementById("fGameType").value.trim() || "—";
   }
 
@@ -649,8 +652,7 @@
       +   '</div>'
       +   '<div class="edit-panel" id="editPanel">'
       +     '<form id="editForm">'
-      +       '<p class="hint" style="margin-top:0">Date defaults to the fourth Thursday, 8pm ET — change it here just for this game night.</p>'
-      +       '<label>Venue <input name="location" id="eLocation" required></label>'
+      +       '<p class="hint" style="margin-top:0">Date defaults to the fourth Thursday, 8pm ET — change it here just for this game night. Venue lives in its own card below, since it rotates monthly.</p>'
       +       '<div class="two-col">'
       +         '<label>Date <input type="date" name="date" id="eDate" required></label>'
       +         '<label>Time <input type="time" name="time" id="eTime" required></label>'
@@ -660,6 +662,18 @@
       +       '<button type="submit" class="btn-primary">Save changes</button>'
       +     '</form>'
       +   '</div>'
+      + '</section>'
+      + '<section class="card" id="venueCard">'
+      +   '<h2>Venue</h2>'
+      +   '<div id="venueStatus"></div>'
+      +   '<form id="venueForm">'
+      +     '<div class="two-col">'
+      +       '<label>Your name <input type="text" id="vHost" list="rosterNames" placeholder="Who’s hosting?" required></label>'
+      +       '<label>Address <input type="text" id="vAddress" placeholder="Address, or “my place”" required></label>'
+      +     '</div>'
+      +     '<datalist id="rosterNames"></datalist>'
+      +     '<button type="submit" class="btn-primary" id="venueSubmitBtn">Claim this month’s game</button>'
+      +   '</form>'
       + '</section>'
       + '<section class="card roster">'
       +   '<h2>Table</h2>'
@@ -688,7 +702,11 @@
     document.getElementById("editForm").addEventListener("submit", function(ev){
       ev.preventDefault();
       var details = {
-        location: document.getElementById("eLocation").value.trim(),
+        // Venue fields aren't part of this form — carry over whatever
+        // is already claimed so saving other edits doesn't erase it.
+        location: (state.event || {}).location,
+        venueHost: (state.event || {}).venueHost,
+        venueKey: (state.event || {}).venueKey,
         gameType: document.getElementById("eGameType").value.trim() || "Texas Holdem Cash Game with Rebuys",
         roster: document.getElementById("eRoster").value.trim(),
         date: document.getElementById("eDate").value,
@@ -698,6 +716,19 @@
       saveEvent(details);
       view.editOpen = false;
       document.getElementById("editPanel").classList.remove("open");
+    });
+
+    document.getElementById("venueForm").addEventListener("submit", function(ev){
+      ev.preventDefault();
+      var host = document.getElementById("vHost").value.trim();
+      var address = document.getElementById("vAddress").value.trim();
+      if (!host || !address) return;
+      var details = Object.assign({}, state.event, {
+        location: address,
+        venueHost: host,
+        venueKey: state.gameDateKey
+      });
+      saveEvent(details);
     });
 
     // data-id on each row is the stable per-person slug, not the database
@@ -747,12 +778,12 @@
     document.getElementById("historyToggle").addEventListener("click", loadHistory);
 
     refreshHeader();
+    refreshVenue();
     refreshRsvpTable();
   }
 
   function fillEditForm(){
     var e = state.event || {};
-    document.getElementById("eLocation").value = e.location || "";
     document.getElementById("eGameType").value = e.gameType || "Texas Holdem Cash Game with Rebuys";
     document.getElementById("eRoster").value = e.roster || "";
     var autoKeyNow = gameDateKey(currentGameDateParts(new Date()));
@@ -761,11 +792,18 @@
     document.getElementById("eTime").value = (overrideActive && e.time) ? e.time : "20:00";
   }
 
+  function venueEstablished(e){
+    return !!(e && e.venueKey === state.gameDateKey && e.location);
+  }
+
   function refreshHeader(){
     var e = state.event;
     if (!e) return;
     document.getElementById("mWhen").textContent = state.gameDateDisplay || formatGameDateDisplay(currentGameDateParts(new Date()));
-    document.getElementById("mWhere").textContent = e.location || "—";
+    var whereEl = document.getElementById("mWhere");
+    var established = venueEstablished(e);
+    whereEl.textContent = established ? e.location : "Needs a host";
+    whereEl.classList.toggle("venue-needed", !established);
     document.getElementById("mGameType").textContent = e.gameType || "—";
 
     var seating = computeSeating(state.rsvps, MAX_SEATS);
@@ -776,6 +814,30 @@
     else if (seating.used >= MAX_SEATS) note = "Table’s full";
     else note = (MAX_SEATS - seating.used) + " seat" + ((MAX_SEATS - seating.used) === 1 ? "" : "s") + " left";
     document.getElementById("mSeatNote").textContent = note;
+  }
+
+  // Venue claims follow the exact same pattern as the date override: a
+  // claim only counts if its venueKey matches the current auto-computed
+  // cycle. Once the month rolls over, a stale claim is ignored and the
+  // card reverts to "needs a host" until someone claims the new month —
+  // no deletion required, same trick as the RSVP game_date tagging.
+  function refreshVenue(){
+    var e = state.event || {};
+    var established = venueEstablished(e);
+    var statusEl = document.getElementById("venueStatus");
+    if (established){
+      statusEl.innerHTML = '<p class="venue-banner venue-banner-set">🏠 <strong>' + esc(e.location) + '</strong>'
+        + (e.venueHost ? ' — hosted by ' + esc(e.venueHost) : '') + '</p>';
+      document.getElementById("venueSubmitBtn").textContent = "Change host or address";
+    } else {
+      statusEl.innerHTML = '<p class="venue-banner venue-banner-needed">⚠️ No venue yet this month — claim it below.</p>';
+      document.getElementById("venueSubmitBtn").textContent = "Claim this month’s game";
+    }
+    document.getElementById("vHost").value = established ? (e.venueHost || "") : "";
+    document.getElementById("vAddress").value = established ? (e.location || "") : "";
+
+    var datalist = document.getElementById("rosterNames");
+    datalist.innerHTML = parseRoster(e.roster).map(function(n){ return '<option value="' + esc(n) + '">'; }).join("");
   }
 
   function slugify(name){
@@ -927,13 +989,15 @@
   function dbRowToEvent(row){
     return {
       location: row.location, gameType: row.game_type, roster: row.roster || "",
-      date: row.date, time: row.time, overrideKey: row.override_key || null
+      date: row.date, time: row.time, overrideKey: row.override_key || null,
+      venueHost: row.venue_host || null, venueKey: row.venue_key || null
     };
   }
   function eventToDbRow(e){
     return {
       id: "main", location: e.location, game_type: e.gameType, roster: e.roster,
-      date: e.date, time: e.time, override_key: e.overrideKey
+      date: e.date, time: e.time, override_key: e.overrideKey,
+      venue_host: e.venueHost, venue_key: e.venueKey
     };
   }
   function dbRowToRsvp(row){

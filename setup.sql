@@ -48,6 +48,14 @@ alter table event_details add column if not exists override_key text;
 -- Edit panel, no SQL needed after this.
 alter table event_details add column if not exists roster text;
 
+-- venue_host / venue_key: who claimed this month's location (stored in
+-- the existing `location` column) and which auto-computed cycle that
+-- claim applies to — same pattern as override_key. Once the cycle rolls
+-- past, a stale venue_key is ignored and the app shows "needs a host"
+-- again until someone claims the new month.
+alter table event_details add column if not exists venue_host text;
+alter table event_details add column if not exists venue_key text;
+
 alter table event_details enable row level security;
 alter table rsvps enable row level security;
 
