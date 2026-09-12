@@ -4,57 +4,57 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500;1,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#F1EEE2;
+    --bg:#F8F4EA;
     --surface:#FFFFFF;
-    --surface-2:#EAE6D6;
-    --ink:#1A2B22;
-    --ink-soft:#4B5A50;
-    --ink-faint:#8A9089;
-    --felt:#1F4D3A;
-    --felt-2:#2C6B4F;
-    --felt-ink:#EDE7D6;
-    --brass:#A9791F;
-    --brass-strong:#8C6417;
-    --chip-red:#A83A32;
-    --line:#D9D3C0;
-    --line-soft:#E4E0D0;
-    --shadow:0 1px 2px rgba(26,43,34,0.06), 0 8px 24px -12px rgba(26,43,34,0.18);
+    --surface-2:#F1EAD9;
+    --ink:#2A2620;
+    --ink-soft:#5B5347;
+    --ink-faint:#948C7C;
+    --felt:#1B5E45;
+    --felt-2:#2F7E5B;
+    --felt-ink:#F5F1E4;
+    --brass:#C9A227;
+    --brass-strong:#A97F1A;
+    --chip-red:#C1443A;
+    --line:#E3DCC8;
+    --line-soft:#EDE7D6;
+    --shadow:0 1px 2px rgba(42,38,32,0.06), 0 8px 24px -12px rgba(42,38,32,0.18);
     --radius:14px;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#122019;
-      --surface:#1B3229;
-      --surface-2:#20392E;
-      --ink:#EDE7D6;
-      --ink-soft:#A9B8AC;
-      --ink-faint:#6E8078;
-      --felt:#0F241B;
-      --felt-2:#2C6B4F;
-      --felt-ink:#F1EEE2;
-      --brass:#D4AB4A;
-      --brass-strong:#E6C069;
-      --chip-red:#D2695C;
-      --line:#2C4438;
-      --line-soft:#25392F;
+      --bg:#171310;
+      --surface:#241E17;
+      --surface-2:#2C2419;
+      --ink:#F3EEE2;
+      --ink-soft:#C9C0AC;
+      --ink-faint:#8B8270;
+      --felt:#0E2E22;
+      --felt-2:#2F7E5B;
+      --felt-ink:#F5F1E4;
+      --brass:#E0B84A;
+      --brass-strong:#F0CB6B;
+      --chip-red:#E07A6E;
+      --line:#3A3226;
+      --line-soft:#2E2820;
       --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
     }
   }
   :root[data-theme="dark"]{
-    --bg:#122019;
-    --surface:#1B3229;
-    --surface-2:#20392E;
-    --ink:#EDE7D6;
-    --ink-soft:#A9B8AC;
-    --ink-faint:#6E8078;
-    --felt:#0F241B;
-    --felt-2:#2C6B4F;
-    --felt-ink:#F1EEE2;
-    --brass:#D4AB4A;
-    --brass-strong:#E6C069;
-    --chip-red:#D2695C;
-    --line:#2C4438;
-    --line-soft:#25392F;
+    --bg:#171310;
+    --surface:#241E17;
+    --surface-2:#2C2419;
+    --ink:#F3EEE2;
+    --ink-soft:#C9C0AC;
+    --ink-faint:#8B8270;
+    --felt:#0E2E22;
+    --felt-2:#2F7E5B;
+    --felt-ink:#F5F1E4;
+    --brass:#E0B84A;
+    --brass-strong:#F0CB6B;
+    --chip-red:#E07A6E;
+    --line:#3A3226;
+    --line-soft:#2E2820;
     --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
   }
 
@@ -110,7 +110,7 @@
   @media (prefers-reduced-motion: reduce){ .invite-card{animation:none;} }
   @keyframes riseIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
 
-  .invite-top{display:flex; align-items:center; justify-content:space-between; gap:12px; position:relative; z-index:1;}
+  .invite-top{display:flex; align-items:center; justify-content:flex-end; gap:12px; position:relative; z-index:1;}
   .eyebrow{
     text-transform:uppercase;
     letter-spacing:0.12em;
@@ -147,6 +147,7 @@
     position:relative;
     z-index:1;
   }
+  .meta-grid .meta-item:nth-child(5){grid-column:1 / -1;}
   .meta-item dt{
     font-size:11px;
     text-transform:uppercase;
@@ -353,6 +354,7 @@
   var SUPABASE_URL = "https://yyzkqvejcyxpigfdjuee.supabase.co";
   var SUPABASE_ANON_KEY = "sb_publishable_hGpWisL0tTeT5HHeaTli-Q_yNieIiy4";
   var STORAGE_KEY = "dealMeIn:rsvpId";
+  var ORGANIZER_NAME = "Barry";
 
   var state = {
     event: null,
@@ -417,6 +419,31 @@
     var dateFmt = dt.toLocaleDateString(undefined, {timeZone: "UTC", weekday: "short", month: "short", day: "numeric"});
     return dateFmt + " · 8:00 PM ET";
   }
+  // Formats an explicit "YYYY-MM-DD" + "HH:MM" pair (a host override) the
+  // same way as the auto-computed default, so the two look identical.
+  function formatEffectiveWhen(dateStr, timeStr){
+    if (!dateStr) return "—";
+    var bits = dateStr.split("-").map(Number);
+    var dt = new Date(Date.UTC(bits[0], bits[1] - 1, bits[2]));
+    var dateFmt = dt.toLocaleDateString(undefined, {timeZone: "UTC", weekday: "short", month: "short", day: "numeric"});
+    if (!timeStr) return dateFmt;
+    var tp = timeStr.split(":");
+    var hh = Number(tp[0]), mm = tp[1] || "00";
+    var ampm = hh >= 12 ? "PM" : "AM";
+    var hh12 = hh % 12; if (hh12 === 0) hh12 = 12;
+    return dateFmt + " · " + hh12 + ":" + String(mm).padStart(2, "0") + " " + ampm + " ET";
+  }
+  // The effective game date is the auto default UNLESS the host saved an
+  // explicit override for this exact cycle (overrideKey matches today's
+  // auto-computed key) — a stale override from a past month is ignored.
+  function effectiveGameInfo(event, now){
+    var autoParts = currentGameDateParts(now);
+    var autoKey = gameDateKey(autoParts);
+    if (event && event.overrideKey === autoKey && event.date){
+      return { key: event.date, display: formatEffectiveWhen(event.date, event.time) };
+    }
+    return { key: autoKey, display: formatGameDateDisplay(autoParts) };
+  }
 
   function computeSeating(rsvps, maxSeats){
     var inList = rsvps.filter(function(r){ return r.status === "in"; });
@@ -435,13 +462,13 @@
   function setupTemplate(){
     return ''
       + '<section class="invite-card" id="previewCard">'
-      +   '<div class="invite-top"><span class="eyebrow">Home Game</span></div>'
-      +   '<h1 class="invite-title" id="pvTitle">Texas Hold’em</h1>'
+      +   '<h1 class="invite-title">Texas Hold’em</h1>'
       +   '<dl class="meta-grid">'
       +     '<div class="meta-item"><dt>When</dt><dd class="mono" id="pvWhen">—</dd></div>'
-      +     '<div class="meta-item"><dt>Where</dt><dd id="pvWhere">—</dd></div>'
-      +     '<div class="meta-item"><dt>Buy-in</dt><dd class="mono" id="pvBuyin">$20</dd></div>'
-      +     '<div class="meta-item"><dt>Host</dt><dd id="pvHost">—</dd></div>'
+      +     '<div class="meta-item"><dt>Venue</dt><dd id="pvWhere">—</dd></div>'
+      +     '<div class="meta-item"><dt>Game type</dt><dd id="pvGameType">—</dd></div>'
+      +     '<div class="meta-item"><dt>Buy-in</dt><dd class="mono" id="pvBuyin">$60</dd></div>'
+      +     '<div class="meta-item"><dt>Organizer</dt><dd>' + esc(ORGANIZER_NAME) + '</dd></div>'
       +   '</dl>'
       +   '<div class="seat-stat">'
       +     '<div class="seat-numbers"><span class="n">0</span><span class="slash">/</span><span class="max" id="pvMax">8</span><span class="label">seats</span></div>'
@@ -451,13 +478,16 @@
       + '</section>'
       + '<section class="card">'
       +   '<h2>Set up the game</h2>'
-      +   '<p class="hint">The date is automatic — always the fourth Thursday of the month, 8:00 PM Eastern. Fill in the rest once; the card above updates as you type, and everyone who opens this link afterward will see it.</p>'
+      +   '<p class="hint">The date defaults to the fourth Thursday of the month, 8:00 PM Eastern — adjust it below only if this month needs a one-off change. Fill in the rest once; the card above updates as you type, and everyone who opens this link afterward will see it.</p>'
       +   '<form id="setupForm">'
-      +     '<label>Game <input name="game" id="fGame" value="Texas Hold’em" required></label>'
-      +     '<label>Host name <input name="hostName" id="fHost" placeholder="Your name" required></label>'
-      +     '<label>Location <input name="location" id="fLocation" placeholder="Address, or “my place”" required></label>'
+      +     '<label>Venue <input name="location" id="fLocation" placeholder="Address, or “my place”" required></label>'
       +     '<div class="two-col">'
-      +       '<label>Buy-in ($) <input type="number" name="buyIn" id="fBuyin" min="0" step="5" value="20" required></label>'
+      +       '<label>Date <input type="date" name="date" id="fDate" required></label>'
+      +       '<label>Time <input type="time" name="time" id="fTime" required></label>'
+      +     '</div>'
+      +     '<label>Game type <input name="gameType" id="fGameType" value="Texas Holdem Cash Game with Rebuys" required></label>'
+      +     '<div class="two-col">'
+      +       '<label>Buy-in ($) <input type="number" name="buyIn" id="fBuyin" min="0" step="5" value="60" required></label>'
       +       '<label>Seats <input type="number" name="maxSeats" id="fSeats" min="2" max="20" value="8" required></label>'
       +     '</div>'
       +     '<label>Note <input name="note" id="fNote" value="BYOB, bring singles for the pot"></label>'
@@ -478,8 +508,10 @@
 
   function mountSetup(){
     document.getElementById("app").innerHTML = setupTemplate();
-    document.getElementById("pvWhen").textContent = formatGameDateDisplay(currentGameDateParts(new Date()));
-    var ids = ["fGame","fHost","fLocation","fBuyin","fSeats","fNote"];
+    var autoParts = currentGameDateParts(new Date());
+    document.getElementById("fDate").value = gameDateKey(autoParts);
+    document.getElementById("fTime").value = "20:00";
+    var ids = ["fLocation","fDate","fTime","fGameType","fBuyin","fSeats","fNote"];
     ids.forEach(function(id){
       document.getElementById(id).addEventListener("input", updatePreview);
     });
@@ -487,12 +519,14 @@
     document.getElementById("setupForm").addEventListener("submit", function(ev){
       ev.preventDefault();
       var details = {
-        game: document.getElementById("fGame").value.trim() || "Poker Night",
-        hostName: document.getElementById("fHost").value.trim(),
         location: document.getElementById("fLocation").value.trim(),
+        gameType: document.getElementById("fGameType").value.trim() || "Texas Holdem Cash Game with Rebuys",
         buyIn: Number(document.getElementById("fBuyin").value) || 0,
         maxSeats: Math.max(2, Number(document.getElementById("fSeats").value) || 8),
-        note: document.getElementById("fNote").value.trim()
+        note: document.getElementById("fNote").value.trim(),
+        date: document.getElementById("fDate").value,
+        time: document.getElementById("fTime").value,
+        overrideKey: gameDateKey(currentGameDateParts(new Date()))
       };
       saveEvent(details);
     });
@@ -500,10 +534,10 @@
 
   function updatePreview(){
     var max = Math.max(2, Number(document.getElementById("fSeats").value) || 8);
-    document.getElementById("pvTitle").textContent = document.getElementById("fGame").value || "Poker Night";
+    document.getElementById("pvWhen").textContent = formatEffectiveWhen(document.getElementById("fDate").value, document.getElementById("fTime").value);
     document.getElementById("pvWhere").textContent = document.getElementById("fLocation").value.trim() || "—";
+    document.getElementById("pvGameType").textContent = document.getElementById("fGameType").value.trim() || "—";
     document.getElementById("pvBuyin").textContent = "$" + (Number(document.getElementById("fBuyin").value) || 0);
-    document.getElementById("pvHost").textContent = document.getElementById("fHost").value.trim() || "—";
     document.getElementById("pvMax").textContent = max;
     document.getElementById("pvNote").textContent = document.getElementById("fNote").value.trim();
     renderPips(document.getElementById("pvPips"), max, 0, 0);
@@ -514,13 +548,14 @@
   function mainTemplate(){
     return ''
       + '<section class="invite-card">'
-      +   '<div class="invite-top"><span class="eyebrow">Home Game</span><button class="edit-btn" id="editBtn" type="button">Edit</button></div>'
-      +   '<h1 class="invite-title" id="mTitle"></h1>'
+      +   '<div class="invite-top"><button class="edit-btn" id="editBtn" type="button">Edit</button></div>'
+      +   '<h1 class="invite-title">Texas Hold’em</h1>'
       +   '<dl class="meta-grid">'
       +     '<div class="meta-item"><dt>When</dt><dd class="mono" id="mWhen"></dd></div>'
-      +     '<div class="meta-item"><dt>Where</dt><dd id="mWhere"></dd></div>'
+      +     '<div class="meta-item"><dt>Venue</dt><dd id="mWhere"></dd></div>'
+      +     '<div class="meta-item"><dt>Game type</dt><dd id="mGameType"></dd></div>'
       +     '<div class="meta-item"><dt>Buy-in</dt><dd class="mono" id="mBuyin"></dd></div>'
-      +     '<div class="meta-item"><dt>Host</dt><dd id="mHost"></dd></div>'
+      +     '<div class="meta-item"><dt>Organizer</dt><dd>' + esc(ORGANIZER_NAME) + '</dd></div>'
       +   '</dl>'
       +   '<div class="seat-stat">'
       +     '<div class="seat-numbers"><span class="n" id="mUsed">0</span><span class="slash">/</span><span class="max" id="mMax">0</span><span class="label">seats</span></div>'
@@ -530,10 +565,13 @@
       +   '<p class="invite-note" id="mNote"></p>'
       +   '<div class="edit-panel" id="editPanel">'
       +     '<form id="editForm">'
-      +       '<p class="hint" style="margin-top:0">The date stays automatic — fourth Thursday of the month, 8:00 PM Eastern.</p>'
-      +       '<label>Game <input name="game" id="eGame" required></label>'
-      +       '<label>Host name <input name="hostName" id="eHost" required></label>'
-      +       '<label>Location <input name="location" id="eLocation" required></label>'
+      +       '<p class="hint" style="margin-top:0">Date defaults to the fourth Thursday, 8pm ET — change it here just for this game night.</p>'
+      +       '<label>Venue <input name="location" id="eLocation" required></label>'
+      +       '<div class="two-col">'
+      +         '<label>Date <input type="date" name="date" id="eDate" required></label>'
+      +         '<label>Time <input type="time" name="time" id="eTime" required></label>'
+      +       '</div>'
+      +       '<label>Game type <input name="gameType" id="eGameType" required></label>'
       +       '<div class="two-col">'
       +         '<label>Buy-in ($) <input type="number" name="buyIn" id="eBuyin" min="0" step="5" required></label>'
       +         '<label>Seats <input type="number" name="maxSeats" id="eSeats" min="2" max="20" required></label>'
@@ -585,12 +623,14 @@
     document.getElementById("editForm").addEventListener("submit", function(ev){
       ev.preventDefault();
       var details = {
-        game: document.getElementById("eGame").value.trim() || "Poker Night",
-        hostName: document.getElementById("eHost").value.trim(),
         location: document.getElementById("eLocation").value.trim(),
+        gameType: document.getElementById("eGameType").value.trim() || "Texas Holdem Cash Game with Rebuys",
         buyIn: Number(document.getElementById("eBuyin").value) || 0,
         maxSeats: Math.max(2, Number(document.getElementById("eSeats").value) || 8),
-        note: document.getElementById("eNote").value.trim()
+        note: document.getElementById("eNote").value.trim(),
+        date: document.getElementById("eDate").value,
+        time: document.getElementById("eTime").value,
+        overrideKey: gameDateKey(currentGameDateParts(new Date()))
       };
       saveEvent(details);
       view.editOpen = false;
@@ -656,22 +696,24 @@
 
   function fillEditForm(){
     var e = state.event || {};
-    document.getElementById("eGame").value = e.game || "";
-    document.getElementById("eHost").value = e.hostName || "";
     document.getElementById("eLocation").value = e.location || "";
-    document.getElementById("eBuyin").value = e.buyIn || 0;
+    document.getElementById("eGameType").value = e.gameType || "Texas Holdem Cash Game with Rebuys";
+    document.getElementById("eBuyin").value = e.buyIn || 60;
     document.getElementById("eSeats").value = e.maxSeats || 8;
     document.getElementById("eNote").value = e.note || "";
+    var autoKeyNow = gameDateKey(currentGameDateParts(new Date()));
+    var overrideActive = e.overrideKey === autoKeyNow && e.date;
+    document.getElementById("eDate").value = state.gameDateKey || autoKeyNow;
+    document.getElementById("eTime").value = (overrideActive && e.time) ? e.time : "20:00";
   }
 
   function refreshHeader(){
     var e = state.event;
     if (!e) return;
-    document.getElementById("mTitle").textContent = e.game || "Poker Night";
     document.getElementById("mWhen").textContent = state.gameDateDisplay || formatGameDateDisplay(currentGameDateParts(new Date()));
     document.getElementById("mWhere").textContent = e.location || "—";
+    document.getElementById("mGameType").textContent = e.gameType || "—";
     document.getElementById("mBuyin").textContent = "$" + (e.buyIn || 0);
-    document.getElementById("mHost").textContent = e.hostName || "—";
     document.getElementById("mNote").textContent = e.note || "";
 
     var seating = computeSeating(state.rsvps, e.maxSeats || 8);
@@ -790,15 +832,17 @@
 
   function dbRowToEvent(row){
     return {
-      game: row.game, hostName: row.host_name,
-      location: row.location, buyIn: Number(row.buy_in) || 0,
-      maxSeats: Number(row.max_seats) || 8, note: row.note || ""
+      location: row.location, gameType: row.game_type,
+      buyIn: Number(row.buy_in) || 0, maxSeats: Number(row.max_seats) || 8,
+      note: row.note || "", date: row.date, time: row.time,
+      overrideKey: row.override_key || null
     };
   }
   function eventToDbRow(e){
     return {
-      id: "main", game: e.game, host_name: e.hostName,
-      location: e.location, buy_in: e.buyIn, max_seats: e.maxSeats, note: e.note
+      id: "main", location: e.location, game_type: e.gameType,
+      buy_in: e.buyIn, max_seats: e.maxSeats, note: e.note,
+      date: e.date, time: e.time, override_key: e.overrideKey
     };
   }
   function dbRowToRsvp(row){
@@ -849,13 +893,13 @@
 
   async function refetchAll(){
     var client = state.db;
-    var parts = currentGameDateParts(new Date());
-    state.gameDateKey = gameDateKey(parts);
-    state.gameDateDisplay = formatGameDateDisplay(parts);
-
     var evRes = await client.from("event_details").select("*").eq("id", "main").maybeSingle();
     if (evRes.error){ showBanner("Can’t reach the database: " + evRes.error.message + ". Make sure setup.sql has been run in Supabase."); return; }
     state.event = evRes.data ? dbRowToEvent(evRes.data) : null;
+
+    var eff = effectiveGameInfo(state.event, new Date());
+    state.gameDateKey = eff.key;
+    state.gameDateDisplay = eff.display;
 
     var rsRes = await client.from("rsvps").select("*").eq("game_date", state.gameDateKey).order("created_at", {ascending: true});
     if (rsRes.error){ showBanner("Can’t reach the database: " + rsRes.error.message); return; }

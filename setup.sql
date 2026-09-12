@@ -33,6 +33,15 @@ create table if not exists rsvps (
 alter table rsvps add column if not exists game_date text;
 create index if not exists rsvps_game_date_idx on rsvps (game_date);
 
+-- game_type: the free-text description of the cash game format.
+-- override_key: which auto-computed cycle (e.g. '2026-09-24') the saved
+-- date/time in this row apply to. When it matches today's computed cycle,
+-- the app uses the saved date/time instead of the automatic default —
+-- letting the host push a single month's game to a different day. Once
+-- the cycle rolls past, a stale override_key is ignored automatically.
+alter table event_details add column if not exists game_type text;
+alter table event_details add column if not exists override_key text;
+
 alter table event_details enable row level security;
 alter table rsvps enable row level security;
 
