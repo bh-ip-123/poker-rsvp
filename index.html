@@ -672,7 +672,7 @@
       +       '<label>Address <input type="text" id="vAddress" placeholder="Address, or “my place”" required></label>'
       +     '</div>'
       +     '<datalist id="rosterNames"></datalist>'
-      +     '<button type="submit" class="btn-primary" id="venueSubmitBtn">Claim this month’s game</button>'
+      +     '<button type="submit" class="btn-primary" id="venueSubmitBtn">Click to host this month</button>'
       +   '</form>'
       + '</section>'
       + '<section class="card roster">'
@@ -831,7 +831,7 @@
       document.getElementById("venueSubmitBtn").textContent = "Change host or address";
     } else {
       statusEl.innerHTML = '<p class="venue-banner venue-banner-needed">⚠️ No venue yet this month — claim it below.</p>';
-      document.getElementById("venueSubmitBtn").textContent = "Claim this month’s game";
+      document.getElementById("venueSubmitBtn").textContent = "Click to host this month";
     }
     document.getElementById("vHost").value = established ? (e.venueHost || "") : "";
     document.getElementById("vAddress").value = established ? (e.location || "") : "";
