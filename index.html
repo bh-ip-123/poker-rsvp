@@ -386,19 +386,28 @@
   .muted-list{color:var(--ink-faint); font-size:13.5px; margin:0; line-height:1.6;}
 
   /* ---------- Clickable RSVP table ---------- */
+  /* A 3-line grid per row (name+seat / status / stepper+note) with fixed
+     track sizes, so every row's controls line up in the same column no
+     matter which status is active — nothing shifts based on what that
+     row happens to be showing. */
   .rsvp-table{display:flex; flex-direction:column; border-radius:10px; overflow:hidden; border:1px solid var(--line-soft); margin-top:14px;}
   .rr-row{
-    display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px;
+    display:grid;
+    grid-template-columns:1fr auto;
+    grid-template-areas:"name seat" "status status" "extra extra";
+    row-gap:8px; column-gap:10px;
+    align-items:center;
     padding:12px 14px; background:var(--surface); border-bottom:1px solid var(--line-soft);
   }
   .rr-row:last-child{border-bottom:none;}
-  .rr-name{font-weight:600; font-size:14.5px; flex:1 1 auto; min-width:80px;}
+  .rr-name{grid-area:name; font-weight:600; font-size:14.5px;}
   .rr-seat{
+    grid-area:seat;
     font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--felt-2);
-    background:rgba(47,174,122,0.14); padding:1px 7px; border-radius:999px; flex:none;
+    background:rgba(47,174,122,0.14); padding:1px 7px; border-radius:999px;
   }
   .rr-seat.waiting{color:var(--chip-red); background:rgba(196,58,44,0.14);}
-  .rr-status{display:flex; gap:6px; flex:none;}
+  .rr-status{grid-area:status; display:grid; grid-template-columns:repeat(3, 1fr); gap:6px;}
   .rr-btn{
     font-family:"Public Sans", sans-serif; font-size:12px; font-weight:600;
     padding:6px 10px; border-radius:7px; border:1.5px solid var(--line);
@@ -408,7 +417,8 @@
   .rr-btn.active[data-status="in"]{background:var(--felt); border-color:var(--felt); color:var(--felt-ink);}
   .rr-btn.active[data-status="maybe"]{background:var(--brass); border-color:var(--brass); color:#241505;}
   .rr-btn.active[data-status="out"]{background:var(--chip-red); border-color:var(--chip-red); color:#FFF3F1;}
-  .rr-guests{display:flex; align-items:center; gap:6px; flex:none;}
+  .rr-extra{grid-area:extra; display:flex; align-items:center; gap:10px;}
+  .rr-guests{display:flex; align-items:center; gap:6px; flex:none; width:56px;}
   .rr-guests button{
     width:22px; height:22px; border-radius:50%; border:1.5px solid var(--felt-2);
     background:var(--surface); color:var(--felt-2); font-size:13px; line-height:1; cursor:pointer; font-family:inherit;
@@ -416,7 +426,7 @@
   .rr-guests button:hover{background:var(--felt-2); color:var(--felt-ink);}
   .rr-guests span{font-family:"IBM Plex Mono", monospace; font-size:13px; min-width:12px; text-align:center;}
   .rr-note{
-    flex:1 1 140px; min-width:0; font-family:"Public Sans", sans-serif; font-size:13px;
+    flex:1 1 auto; min-width:0; font-family:"Public Sans", sans-serif; font-size:13px;
     color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:7px; padding:6px 9px;
   }
   .rr-note:focus{outline:2px solid var(--felt-2); outline-offset:1px; border-color:var(--felt-2);}
@@ -761,27 +771,33 @@
     function btn(kind, label){
       return '<button type="button" class="rr-btn' + (status === kind ? " active" : "") + '" data-status="' + kind + '">' + label + "</button>";
     }
-    var seatBadge = "";
-    if (status === "in"){
-      seatBadge = waiting ? '<span class="rr-seat waiting">waitlisted</span>' : '<span class="rr-seat">seat ' + seatNum + "</span>";
-    }
+    var seatText = status === "in" ? (waiting ? "waitlisted" : "seat " + seatNum) : "";
+    var seatClass = "rr-seat" + (status === "in" && waiting ? " waiting" : "");
+    // The guest stepper stays in the DOM and keeps its column width even
+    // when hidden (visibility, not display/hidden), so the note field
+    // always starts at the same x-position regardless of a row's status.
+    var guestsStyle = status === "in" ? "" : ' style="visibility:hidden"';
     return ""
       + '<div class="rr-row" data-id="' + esc(r.id) + '" data-name="' + esc(r.name) + '">'
       +   '<span class="rr-name">' + esc(r.name) + "</span>"
-      +   seatBadge
+      +   '<span class="' + seatClass + '">' + seatText + "</span>"
       +   '<div class="rr-status">' + btn("in", "In") + btn("maybe", "Maybe") + btn("out", "Can’t") + "</div>"
-      +   '<div class="rr-guests"' + (status === "in" ? "" : " hidden") + '>'
-      +     '<button type="button" class="rr-minus">−</button><span class="rr-count">' + (Number(r.guests) || 0) + '</span><button type="button" class="rr-plus">+</button>'
+      +   '<div class="rr-extra">'
+      +     '<div class="rr-guests"' + guestsStyle + '>'
+      +       '<button type="button" class="rr-minus">−</button><span class="rr-count">' + (Number(r.guests) || 0) + '</span><button type="button" class="rr-plus">+</button>'
+      +     "</div>"
+      +     '<input type="text" class="rr-note" placeholder="note" value="' + esc(r.note || "") + '"' + (status ? "" : " disabled") + ">"
       +   "</div>"
-      +   '<input type="text" class="rr-note" placeholder="note" value="' + esc(r.note || "") + '"' + (status ? "" : " disabled") + ">"
       + "</div>";
   }
 
-  // One clickable row per player. Confirmed seats show a seat number,
-  // overflow shows "waitlisted" — nothing is hidden or split into
-  // separate sections, so anyone can see the full picture at a glance.
-  // Preserves focus/caret on the note currently being typed into, since
-  // this rebuilds the whole list on every change (including from others).
+  // One clickable row per player, sorted In first, then Maybe, then Can't,
+  // then anyone who hasn't answered yet. Within "In", confirmed seats
+  // (numbered, in signup order) come before anyone waitlisted. Nothing is
+  // hidden or split into separate sections — the order alone tells the
+  // story. Preserves focus/caret on the note currently being typed into,
+  // since this rebuilds the whole list on every change, including from
+  // other people's concurrent edits.
   function refreshRsvpTable(){
     var e = state.event;
     if (!e) return;
@@ -800,15 +816,29 @@
     var waitlistIds = {}; seating.waitlist.forEach(function(r){ waitlistIds[r.id] = true; });
 
     var rosterSlugs = {};
-    var rows = names.map(function(name){
+    var entries = names.map(function(name){
       var id = slugify(name);
       rosterSlugs[id] = true;
-      var r = byId[id] || { id: id, name: name, status: null, guests: 0, note: "" };
-      return rsvpRowHtml(r, confirmedIdx[id], waitlistIds[id]);
+      return byId[id] || { id: id, name: name, status: null, guests: 0, note: "" };
     });
     state.rsvps.forEach(function(r){
-      if (!rosterSlugs[r.id]) rows.push(rsvpRowHtml(r, confirmedIdx[r.id], waitlistIds[r.id]));
+      if (!rosterSlugs[r.id]) entries.push(r);
     });
+
+    var statusRank = { in: 0, maybe: 1, out: 2 };
+    entries.sort(function(a, b){
+      var ra = a.status ? statusRank[a.status] : 3;
+      var rb = b.status ? statusRank[b.status] : 3;
+      if (ra !== rb) return ra - rb;
+      if (a.status === "in"){
+        var aw = waitlistIds[a.id] ? 1 : 0, bw = waitlistIds[b.id] ? 1 : 0;
+        if (aw !== bw) return aw - bw;
+        return (confirmedIdx[a.id] || 999) - (confirmedIdx[b.id] || 999);
+      }
+      return 0; // stable sort keeps roster order among ties
+    });
+
+    var rows = entries.map(function(r){ return rsvpRowHtml(r, confirmedIdx[r.id], waitlistIds[r.id]); });
 
     if (rows.length === 0){
       container.innerHTML = "";
