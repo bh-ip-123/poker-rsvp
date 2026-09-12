@@ -77,17 +77,18 @@
     -webkit-font-smoothing:antialiased;
   }
 
-  /* A big fanned hand fixed in the corner, sitting right on the felt
-     backdrop — the page itself now reads as a poker table, with the
-     cream cards/invite floating on top of it. */
+  /* A big fanned hand fixed in view, sitting right on the felt backdrop —
+     the page itself reads as a poker table, with the cream cards/invite
+     floating on top of it. Centered and fully on-screen (not cropped
+     into a corner) so it actually reads clearly rather than as a sliver. */
   .table-bg{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;}
-  .table-bg .hand{position:absolute; bottom:-60px; right:-40px; display:flex; opacity:0.9;}
+  .table-bg .hand{position:absolute; bottom:24px; left:50%; transform:translateX(-50%); display:flex; opacity:0.95;}
   .table-bg .tb-card{
-    width:130px; height:182px; border-radius:13px; margin-left:-48px;
+    width:150px; height:210px; border-radius:14px; margin-left:-56px;
     background:#FBF8EE; border:2px solid var(--brass);
-    box-shadow:0 12px 28px rgba(0,0,0,0.35);
+    box-shadow:0 14px 32px rgba(0,0,0,0.4);
     display:flex; align-items:center; justify-content:center;
-    font-family:"IBM Plex Mono", monospace; font-weight:700; font-size:42px;
+    font-family:"IBM Plex Mono", monospace; font-weight:700; font-size:48px;
     color:#201A10;
     flex:none;
   }
