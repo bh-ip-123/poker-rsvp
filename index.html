@@ -1,0 +1,882 @@
+<title>Deal Me In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500;1,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1EEE2;
+    --surface:#FFFFFF;
+    --surface-2:#EAE6D6;
+    --ink:#1A2B22;
+    --ink-soft:#4B5A50;
+    --ink-faint:#8A9089;
+    --felt:#1F4D3A;
+    --felt-2:#2C6B4F;
+    --felt-ink:#EDE7D6;
+    --brass:#A9791F;
+    --brass-strong:#8C6417;
+    --chip-red:#A83A32;
+    --line:#D9D3C0;
+    --line-soft:#E4E0D0;
+    --shadow:0 1px 2px rgba(26,43,34,0.06), 0 8px 24px -12px rgba(26,43,34,0.18);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#122019;
+      --surface:#1B3229;
+      --surface-2:#20392E;
+      --ink:#EDE7D6;
+      --ink-soft:#A9B8AC;
+      --ink-faint:#6E8078;
+      --felt:#0F241B;
+      --felt-2:#2C6B4F;
+      --felt-ink:#F1EEE2;
+      --brass:#D4AB4A;
+      --brass-strong:#E6C069;
+      --chip-red:#D2695C;
+      --line:#2C4438;
+      --line-soft:#25392F;
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#122019;
+    --surface:#1B3229;
+    --surface-2:#20392E;
+    --ink:#EDE7D6;
+    --ink-soft:#A9B8AC;
+    --ink-faint:#6E8078;
+    --felt:#0F241B;
+    --felt-2:#2C6B4F;
+    --felt-ink:#F1EEE2;
+    --brass:#D4AB4A;
+    --brass-strong:#E6C069;
+    --chip-red:#D2695C;
+    --line:#2C4438;
+    --line-soft:#25392F;
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:"Fraunces", Georgia, serif; text-wrap:balance; margin:0;}
+  .mono{font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace; font-variant-numeric:tabular-nums;}
+  a{color:inherit;}
+
+  .wrap{max-width:640px; margin:0 auto; padding:28px 18px 90px;}
+
+  .banner{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    border-radius:10px;
+    padding:10px 14px;
+    font-size:13.5px;
+    margin-bottom:16px;
+  }
+
+  /* ---------- Invite card ---------- */
+  .invite-card{
+    position:relative;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255,255,255,0.035) 0, transparent 45%),
+      radial-gradient(circle at 85% 75%, rgba(255,255,255,0.03) 0, transparent 40%),
+      var(--felt);
+    color:var(--felt-ink);
+    border-radius:18px;
+    padding:26px 24px 24px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    animation:riseIn 0.5s ease-out both;
+  }
+  .invite-card::after{
+    content:"♠";
+    position:absolute;
+    right:-8px;
+    top:-24px;
+    font-family:"Fraunces", serif;
+    font-size:150px;
+    color:rgba(255,255,255,0.045);
+    line-height:1;
+    pointer-events:none;
+  }
+  @media (prefers-reduced-motion: reduce){ .invite-card{animation:none;} }
+  @keyframes riseIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  .invite-top{display:flex; align-items:center; justify-content:space-between; gap:12px; position:relative; z-index:1;}
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--brass-strong);
+  }
+  .edit-btn{
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.18);
+    color:var(--felt-ink);
+    border-radius:999px;
+    padding:5px 12px;
+    font-size:12.5px;
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .edit-btn:hover{background:rgba(255,255,255,0.15);}
+
+  .invite-title{
+    font-size:clamp(26px, 6vw, 34px);
+    font-style:italic;
+    font-weight:500;
+    margin-top:10px;
+    position:relative;
+    z-index:1;
+  }
+
+  .meta-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px 20px;
+    margin:20px 0 0;
+    position:relative;
+    z-index:1;
+  }
+  .meta-item dt{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:rgba(237,231,214,0.6);
+    margin-bottom:3px;
+  }
+  .meta-item dd{margin:0; font-size:15px; font-weight:500;}
+  .meta-item dd.mono{font-size:15px;}
+
+  .seat-stat{
+    margin-top:22px;
+    padding-top:18px;
+    border-top:1px solid rgba(255,255,255,0.12);
+    position:relative;
+    z-index:1;
+  }
+  .seat-numbers{display:flex; align-items:baseline; gap:6px;}
+  .seat-numbers .n{font-size:30px; font-weight:600;}
+  .seat-numbers .slash{font-size:20px; color:rgba(237,231,214,0.5);}
+  .seat-numbers .max{font-size:20px; color:rgba(237,231,214,0.75);}
+  .seat-numbers .label{
+    font-family:"Public Sans", sans-serif;
+    font-size:12.5px;
+    color:rgba(237,231,214,0.6);
+    margin-left:2px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .pip-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+  .pip{width:11px; height:11px; border-radius:50%; border:1.5px solid rgba(212,171,74,0.55); background:transparent; flex:none;}
+  .pip.filled{background:var(--brass-strong); border-color:var(--brass-strong);}
+  .pip.wait{background:var(--chip-red); border-color:var(--chip-red);}
+  .seat-note{font-size:13px; color:rgba(237,231,214,0.7); margin:10px 0 0;}
+  .invite-note{
+    margin:16px 0 0;
+    padding-top:14px;
+    border-top:1px solid rgba(255,255,255,0.1);
+    font-size:13.5px;
+    color:rgba(237,231,214,0.75);
+    font-style:italic;
+    position:relative;
+    z-index:1;
+  }
+  .invite-note:empty{display:none;}
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+    margin-top:18px;
+    box-shadow:var(--shadow);
+  }
+  .card h2{font-size:19px; font-weight:600; font-style:italic; color:var(--ink);}
+  .hint{color:var(--ink-soft); font-size:13.5px; margin:6px 0 0;}
+
+  form{display:flex; flex-direction:column; gap:14px; margin-top:16px;}
+  label{display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:600; color:var(--ink-soft);}
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  input{
+    font-family:"Public Sans", sans-serif;
+    font-size:15px;
+    color:var(--ink);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:10px 12px;
+    font-weight:400;
+  }
+  input:focus{outline:2px solid var(--felt-2); outline-offset:1px; border-color:var(--felt-2);}
+  input[type=number], input[type=date], input[type=time]{font-family:"IBM Plex Mono", monospace;}
+
+  .status-toggle{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;}
+  .status-btn{
+    font-family:"Public Sans", sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    padding:10px 6px;
+    border-radius:9px;
+    border:1.5px solid var(--line);
+    background:var(--surface);
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .status-btn:hover{border-color:var(--felt-2);}
+  .status-btn.active[data-status="in"]{background:var(--felt); border-color:var(--felt); color:var(--felt-ink);}
+  .status-btn.active[data-status="maybe"]{background:var(--brass); border-color:var(--brass); color:#231A08;}
+  .status-btn.active[data-status="out"]{background:var(--chip-red); border-color:var(--chip-red); color:#FFF3F1;}
+
+  .guest-row{display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--surface-2); border-radius:9px; padding:10px 14px;}
+  .guest-row span:first-child{font-size:13.5px; color:var(--ink-soft); font-weight:600;}
+  .stepper{display:flex; align-items:center; gap:12px;}
+  .stepper button{
+    width:28px; height:28px; border-radius:50%;
+    border:1.5px solid var(--felt-2); background:var(--surface); color:var(--felt-2);
+    font-size:16px; line-height:1; cursor:pointer; font-family:inherit;
+  }
+  .stepper button:hover{background:var(--felt-2); color:var(--felt-ink);}
+  .stepper span{font-family:"IBM Plex Mono", monospace; font-size:15px; min-width:14px; text-align:center;}
+
+  .btn-primary{
+    background:var(--brass);
+    color:#241B09;
+    border:none;
+    border-radius:9px;
+    padding:12px 16px;
+    font-family:"Public Sans", sans-serif;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    transition:transform 0.1s ease, background 0.15s ease;
+  }
+  .btn-primary:hover{background:var(--brass-strong);}
+  .btn-primary:active{transform:scale(0.98);}
+  .btn-ghost{
+    background:none;
+    border:none;
+    color:var(--chip-red);
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    padding:4px 0;
+    text-align:left;
+    font-family:"Public Sans", sans-serif;
+  }
+  .btn-ghost:hover{text-decoration:underline;}
+
+  .edit-panel{
+    margin-top:16px;
+    padding-top:16px;
+    border-top:1px dashed var(--line);
+    display:none;
+  }
+  .edit-panel.open{display:block;}
+
+  /* ---------- Roster ---------- */
+  .roster-sub{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-faint);
+    font-weight:700;
+    margin:20px 0 10px;
+    font-family:"Public Sans", sans-serif;
+  }
+  .roster-list{display:flex; flex-direction:column; gap:1px; border-radius:10px; overflow:hidden; border:1px solid var(--line-soft);}
+  .seat-row{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    padding:11px 14px;
+    background:var(--surface);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .seat-row:last-child{border-bottom:none;}
+  .seat-row .idx{font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--ink-faint); width:18px; flex:none;}
+  .seat-row .who{font-weight:600; font-size:14.5px;}
+  .seat-row .badge{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:11.5px;
+    color:var(--felt-2);
+    background:rgba(44,107,79,0.12);
+    padding:1px 7px;
+    border-radius:999px;
+    flex:none;
+  }
+  .seat-row.waiting .badge{color:var(--chip-red); background:rgba(168,58,50,0.12);}
+  .seat-row{flex-wrap:wrap;}
+  .seat-row .note{color:var(--ink-soft); font-size:13px; font-style:italic; margin-left:auto; text-align:right; max-width:55%;}
+
+  .chip-list{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:5px 12px 5px 8px;
+    font-size:13.5px;
+    font-weight:600;
+  }
+  .chip .dot{width:7px; height:7px; border-radius:50%; background:var(--brass); flex:none;}
+
+  .muted-list{color:var(--ink-faint); font-size:13.5px; margin:0; line-height:1.6;}
+
+  #emptyRoster{display:none;}
+
+  ::selection{background:var(--brass); color:#241B09;}
+</style>
+
+<div class="wrap">
+  <div id="banner" class="banner" hidden></div>
+  <div id="app"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var SUPABASE_URL = "https://yyzkqvejcyxpigfdjuee.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_hGpWisL0tTeT5HHeaTli-Q_yNieIiy4";
+  var STORAGE_KEY = "dealMeIn:rsvpId";
+
+  var state = {
+    event: null,
+    rsvps: [],
+    db: null
+  };
+
+  var view = { mode: null, mainMounted: false, prefilled: false, editOpen: false, formStatus: "in", formGuests: 0, myId: null };
+
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function getMyId(){
+    if (view.myId) return view.myId;
+    try {
+      var id = localStorage.getItem(STORAGE_KEY);
+      if (!id){
+        id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("g" + Date.now() + Math.random().toString(16).slice(2));
+        localStorage.setItem(STORAGE_KEY, id);
+      }
+      view.myId = id;
+    } catch(e){
+      view.myId = "local-" + Date.now();
+    }
+    return view.myId;
+  }
+
+  function nextThursday(){
+    var d = new Date();
+    var target = 4; // Thursday
+    var diff = (target - d.getDay() + 7) % 7;
+    if (diff === 0) diff = 7;
+    d.setDate(d.getDate() + diff);
+    return d;
+  }
+  function toDateInputValue(d){
+    var y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
+    return y+"-"+m+"-"+day;
+  }
+  function formatWhen(dateStr, timeStr){
+    if (!dateStr) return "—";
+    var dt = new Date(dateStr + "T" + (timeStr || "19:00"));
+    if (isNaN(dt.getTime())) return dateStr + " " + (timeStr||"");
+    var dateFmt = dt.toLocaleDateString(undefined, {weekday:"short", month:"short", day:"numeric"});
+    var timeFmt = timeStr ? dt.toLocaleTimeString(undefined, {hour:"numeric", minute:"2-digit"}) : "";
+    return timeFmt ? (dateFmt + " · " + timeFmt) : dateFmt;
+  }
+
+  function computeSeating(rsvps, maxSeats){
+    var inList = rsvps.filter(function(r){ return r.status === "in"; });
+    var used = 0, confirmed = [], waitlist = [];
+    for (var i=0;i<inList.length;i++){
+      var r = inList[i];
+      var party = 1 + (Number(r.guests) || 0);
+      if (used + party <= maxSeats){ confirmed.push(r); used += party; }
+      else { waitlist.push(r); }
+    }
+    return { confirmed: confirmed, waitlist: waitlist, used: used };
+  }
+
+  /* ---------------- Setup mode ---------------- */
+
+  function setupTemplate(){
+    var d = nextThursday();
+    return ''
+      + '<section class="invite-card" id="previewCard">'
+      +   '<div class="invite-top"><span class="eyebrow">Home Game</span></div>'
+      +   '<h1 class="invite-title" id="pvTitle">Texas Hold’em</h1>'
+      +   '<dl class="meta-grid">'
+      +     '<div class="meta-item"><dt>When</dt><dd class="mono" id="pvWhen">—</dd></div>'
+      +     '<div class="meta-item"><dt>Where</dt><dd id="pvWhere">—</dd></div>'
+      +     '<div class="meta-item"><dt>Buy-in</dt><dd class="mono" id="pvBuyin">$20</dd></div>'
+      +     '<div class="meta-item"><dt>Host</dt><dd id="pvHost">—</dd></div>'
+      +   '</dl>'
+      +   '<div class="seat-stat">'
+      +     '<div class="seat-numbers"><span class="n">0</span><span class="slash">/</span><span class="max" id="pvMax">8</span><span class="label">seats</span></div>'
+      +     '<div class="pip-row" id="pvPips"></div>'
+      +   '</div>'
+      +   '<p class="invite-note" id="pvNote">BYOB, bring singles for the pot</p>'
+      + '</section>'
+      + '<section class="card">'
+      +   '<h2>Set up the game</h2>'
+      +   '<p class="hint">Fill this in once — the card above updates as you type. Everyone who opens this link afterward will see it.</p>'
+      +   '<form id="setupForm">'
+      +     '<label>Game <input name="game" id="fGame" value="Texas Hold’em" required></label>'
+      +     '<label>Host name <input name="hostName" id="fHost" placeholder="Your name" required></label>'
+      +     '<div class="two-col">'
+      +       '<label>Date <input type="date" name="date" id="fDate" value="'+toDateInputValue(d)+'" required></label>'
+      +       '<label>Time <input type="time" name="time" id="fTime" value="19:00" required></label>'
+      +     '</div>'
+      +     '<label>Location <input name="location" id="fLocation" placeholder="Address, or “my place”" required></label>'
+      +     '<div class="two-col">'
+      +       '<label>Buy-in ($) <input type="number" name="buyIn" id="fBuyin" min="0" step="5" value="20" required></label>'
+      +       '<label>Seats <input type="number" name="maxSeats" id="fSeats" min="2" max="20" value="8" required></label>'
+      +     '</div>'
+      +     '<label>Note <input name="note" id="fNote" value="BYOB, bring singles for the pot"></label>'
+      +     '<button type="submit" class="btn-primary">Create invite</button>'
+      +   '</form>'
+      + '</section>';
+  }
+
+  function renderPips(container, max, filled, waiting){
+    max = Math.max(0, Math.min(max || 0, 24));
+    var html = "";
+    for (var i=0;i<max;i++){
+      if (i < filled) html += '<span class="pip filled"></span>';
+      else html += '<span class="pip"></span>';
+    }
+    container.innerHTML = html;
+  }
+
+  function mountSetup(){
+    document.getElementById("app").innerHTML = setupTemplate();
+    var ids = ["fGame","fHost","fDate","fTime","fLocation","fBuyin","fSeats","fNote"];
+    ids.forEach(function(id){
+      document.getElementById(id).addEventListener("input", updatePreview);
+    });
+    updatePreview();
+    document.getElementById("setupForm").addEventListener("submit", function(ev){
+      ev.preventDefault();
+      var details = {
+        game: document.getElementById("fGame").value.trim() || "Poker Night",
+        hostName: document.getElementById("fHost").value.trim(),
+        date: document.getElementById("fDate").value,
+        time: document.getElementById("fTime").value,
+        location: document.getElementById("fLocation").value.trim(),
+        buyIn: Number(document.getElementById("fBuyin").value) || 0,
+        maxSeats: Math.max(2, Number(document.getElementById("fSeats").value) || 8),
+        note: document.getElementById("fNote").value.trim()
+      };
+      saveEvent(details);
+    });
+  }
+
+  function updatePreview(){
+    var max = Math.max(2, Number(document.getElementById("fSeats").value) || 8);
+    document.getElementById("pvTitle").textContent = document.getElementById("fGame").value || "Poker Night";
+    document.getElementById("pvWhen").textContent = formatWhen(document.getElementById("fDate").value, document.getElementById("fTime").value);
+    document.getElementById("pvWhere").textContent = document.getElementById("fLocation").value.trim() || "—";
+    document.getElementById("pvBuyin").textContent = "$" + (Number(document.getElementById("fBuyin").value) || 0);
+    document.getElementById("pvHost").textContent = document.getElementById("fHost").value.trim() || "—";
+    document.getElementById("pvMax").textContent = max;
+    document.getElementById("pvNote").textContent = document.getElementById("fNote").value.trim();
+    renderPips(document.getElementById("pvPips"), max, 0, 0);
+  }
+
+  /* ---------------- Main mode ---------------- */
+
+  function mainTemplate(){
+    return ''
+      + '<section class="invite-card">'
+      +   '<div class="invite-top"><span class="eyebrow">Home Game</span><button class="edit-btn" id="editBtn" type="button">Edit</button></div>'
+      +   '<h1 class="invite-title" id="mTitle"></h1>'
+      +   '<dl class="meta-grid">'
+      +     '<div class="meta-item"><dt>When</dt><dd class="mono" id="mWhen"></dd></div>'
+      +     '<div class="meta-item"><dt>Where</dt><dd id="mWhere"></dd></div>'
+      +     '<div class="meta-item"><dt>Buy-in</dt><dd class="mono" id="mBuyin"></dd></div>'
+      +     '<div class="meta-item"><dt>Host</dt><dd id="mHost"></dd></div>'
+      +   '</dl>'
+      +   '<div class="seat-stat">'
+      +     '<div class="seat-numbers"><span class="n" id="mUsed">0</span><span class="slash">/</span><span class="max" id="mMax">0</span><span class="label">seats</span></div>'
+      +     '<div class="pip-row" id="mPips"></div>'
+      +     '<p class="seat-note" id="mSeatNote"></p>'
+      +   '</div>'
+      +   '<p class="invite-note" id="mNote"></p>'
+      +   '<div class="edit-panel" id="editPanel">'
+      +     '<form id="editForm">'
+      +       '<label>Game <input name="game" id="eGame" required></label>'
+      +       '<label>Host name <input name="hostName" id="eHost" required></label>'
+      +       '<div class="two-col">'
+      +         '<label>Date <input type="date" name="date" id="eDate" required></label>'
+      +         '<label>Time <input type="time" name="time" id="eTime" required></label>'
+      +       '</div>'
+      +       '<label>Location <input name="location" id="eLocation" required></label>'
+      +       '<div class="two-col">'
+      +         '<label>Buy-in ($) <input type="number" name="buyIn" id="eBuyin" min="0" step="5" required></label>'
+      +         '<label>Seats <input type="number" name="maxSeats" id="eSeats" min="2" max="20" required></label>'
+      +       '</div>'
+      +       '<label>Note <input name="note" id="eNote"></label>'
+      +       '<button type="submit" class="btn-primary">Save changes</button>'
+      +     '</form>'
+      +   '</div>'
+      + '</section>'
+      + '<section class="card">'
+      +   '<h2 id="rsvpHeading">Your RSVP</h2>'
+      +   '<p class="hint" id="rsvpHint">Let the table know if you’re in.</p>'
+      +   '<form id="rsvpForm">'
+      +     '<label>Name <input name="name" id="rName" required></label>'
+      +     '<div class="status-toggle" role="radiogroup" aria-label="RSVP status">'
+      +       '<button type="button" class="status-btn" data-status="in">I’m in</button>'
+      +       '<button type="button" class="status-btn" data-status="maybe">Maybe</button>'
+      +       '<button type="button" class="status-btn" data-status="out">Can’t make it</button>'
+      +     '</div>'
+      +     '<div class="guest-row" id="guestRow" hidden>'
+      +       '<span>Bringing extra seats?</span>'
+      +       '<div class="stepper"><button type="button" id="guestMinus">−</button><span id="guestCount">0</span><button type="button" id="guestPlus">+</button></div>'
+      +     '</div>'
+      +     '<label>Note <input name="note" id="rNote" placeholder="Optional — snacks, chips, running late…"></label>'
+      +     '<button type="submit" class="btn-primary" id="rsvpSubmitBtn">RSVP</button>'
+      +     '<button type="button" class="btn-ghost" id="removeRsvpBtn" hidden>Remove my RSVP</button>'
+      +   '</form>'
+      + '</section>'
+      + '<section class="card roster">'
+      +   '<h2>Who’s at the table</h2>'
+      +   '<div id="confirmedList" class="roster-list"></div>'
+      +   '<p id="emptyRoster" class="hint">No RSVPs yet — be the first.</p>'
+      +   '<div id="waitlistWrap" hidden><h3 class="roster-sub">Waitlist</h3><div id="waitlistList" class="roster-list"></div></div>'
+      +   '<div id="maybeWrap" hidden><h3 class="roster-sub">Maybe</h3><div id="maybeList" class="chip-list"></div></div>'
+      +   '<div id="outWrap" hidden><h3 class="roster-sub">Can’t make it</h3><p id="outList" class="muted-list"></p></div>'
+      + '</section>';
+  }
+
+  function mountMain(){
+    document.getElementById("app").innerHTML = mainTemplate();
+    view.mainMounted = true;
+
+    document.getElementById("editBtn").addEventListener("click", function(){
+      var panel = document.getElementById("editPanel");
+      view.editOpen = !view.editOpen;
+      panel.classList.toggle("open", view.editOpen);
+      if (view.editOpen) fillEditForm();
+    });
+    document.getElementById("editForm").addEventListener("submit", function(ev){
+      ev.preventDefault();
+      var details = {
+        game: document.getElementById("eGame").value.trim() || "Poker Night",
+        hostName: document.getElementById("eHost").value.trim(),
+        date: document.getElementById("eDate").value,
+        time: document.getElementById("eTime").value,
+        location: document.getElementById("eLocation").value.trim(),
+        buyIn: Number(document.getElementById("eBuyin").value) || 0,
+        maxSeats: Math.max(2, Number(document.getElementById("eSeats").value) || 8),
+        note: document.getElementById("eNote").value.trim()
+      };
+      saveEvent(details);
+      view.editOpen = false;
+      document.getElementById("editPanel").classList.remove("open");
+    });
+
+    var statusBtns = Array.prototype.slice.call(document.querySelectorAll(".status-btn"));
+    statusBtns.forEach(function(btn){
+      btn.addEventListener("click", function(){
+        view.formStatus = btn.getAttribute("data-status");
+        statusBtns.forEach(function(b){ b.classList.toggle("active", b === btn); });
+        document.getElementById("guestRow").hidden = (view.formStatus !== "in");
+      });
+    });
+    document.getElementById("guestMinus").addEventListener("click", function(){
+      view.formGuests = Math.max(0, view.formGuests - 1);
+      document.getElementById("guestCount").textContent = view.formGuests;
+    });
+    document.getElementById("guestPlus").addEventListener("click", function(){
+      view.formGuests = Math.min(6, view.formGuests + 1);
+      document.getElementById("guestCount").textContent = view.formGuests;
+    });
+
+    document.getElementById("rsvpForm").addEventListener("submit", function(ev){
+      ev.preventDefault();
+      var name = document.getElementById("rName").value.trim();
+      if (!name) return;
+      var existing = state.rsvps.find(function(r){ return r.id === getMyId(); });
+      var data = {
+        name: name,
+        status: view.formStatus,
+        guests: view.formStatus === "in" ? view.formGuests : 0,
+        note: document.getElementById("rNote").value.trim(),
+        createdAt: existing ? existing.createdAt : Date.now()
+      };
+      submitRsvp(getMyId(), data);
+      var btn = document.getElementById("rsvpSubmitBtn");
+      var original = existing ? "Update RSVP" : "RSVP";
+      btn.textContent = "Saved ✓";
+      setTimeout(function(){ btn.textContent = original; }, 1400);
+      document.getElementById("removeRsvpBtn").hidden = false;
+    });
+    document.getElementById("removeRsvpBtn").addEventListener("click", function(){
+      removeRsvp(getMyId());
+      document.getElementById("rsvpForm").reset();
+      view.formStatus = "in";
+      view.formGuests = 0;
+      statusBtns.forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-status") === "in"); });
+      document.getElementById("guestCount").textContent = "0";
+      document.getElementById("guestRow").hidden = false;
+      document.getElementById("removeRsvpBtn").hidden = true;
+      document.getElementById("rsvpSubmitBtn").textContent = "RSVP";
+    });
+
+    // default active status button
+    statusBtns.forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-status") === view.formStatus); });
+    document.getElementById("guestRow").hidden = (view.formStatus !== "in");
+
+    refreshHeader();
+    refreshRoster();
+    maybePrefillForm();
+  }
+
+  function fillEditForm(){
+    var e = state.event || {};
+    document.getElementById("eGame").value = e.game || "";
+    document.getElementById("eHost").value = e.hostName || "";
+    document.getElementById("eDate").value = e.date || "";
+    document.getElementById("eTime").value = e.time || "";
+    document.getElementById("eLocation").value = e.location || "";
+    document.getElementById("eBuyin").value = e.buyIn || 0;
+    document.getElementById("eSeats").value = e.maxSeats || 8;
+    document.getElementById("eNote").value = e.note || "";
+  }
+
+  function refreshHeader(){
+    var e = state.event;
+    if (!e) return;
+    document.getElementById("mTitle").textContent = e.game || "Poker Night";
+    document.getElementById("mWhen").textContent = formatWhen(e.date, e.time);
+    document.getElementById("mWhere").textContent = e.location || "—";
+    document.getElementById("mBuyin").textContent = "$" + (e.buyIn || 0);
+    document.getElementById("mHost").textContent = e.hostName || "—";
+    document.getElementById("mNote").textContent = e.note || "";
+
+    var seating = computeSeating(state.rsvps, e.maxSeats || 8);
+    document.getElementById("mUsed").textContent = seating.used;
+    document.getElementById("mMax").textContent = e.maxSeats || 8;
+    renderPips(document.getElementById("mPips"), e.maxSeats || 8, seating.used, seating.waitlist.length);
+    var note;
+    if (seating.waitlist.length > 0) note = seating.waitlist.length + " on the waitlist";
+    else if (seating.used >= (e.maxSeats||8)) note = "Table’s full";
+    else note = ((e.maxSeats||8) - seating.used) + " seat" + (((e.maxSeats||8) - seating.used) === 1 ? "" : "s") + " left";
+    document.getElementById("mSeatNote").textContent = note;
+  }
+
+  function seatRowHtml(idx, r, waiting){
+    var partyBadge = r.guests > 0 ? ("party of " + (1 + Number(r.guests))) : "solo";
+    return ''
+      + '<div class="seat-row' + (waiting ? ' waiting' : '') + '">'
+      +   '<span class="idx">' + (idx != null ? String(idx).padStart(2,"0") : "—") + '</span>'
+      +   '<span class="who">' + esc(r.name) + '</span>'
+      +   '<span class="badge">' + partyBadge + '</span>'
+      +   (r.note ? '<span class="note">' + esc(r.note) + '</span>' : '')
+      + '</div>';
+  }
+
+  function refreshRoster(){
+    var e = state.event;
+    if (!e) return;
+    var seating = computeSeating(state.rsvps, e.maxSeats || 8);
+    var confirmedList = document.getElementById("confirmedList");
+    var waitlistWrap = document.getElementById("waitlistWrap");
+    var waitlistList = document.getElementById("waitlistList");
+    var maybeWrap = document.getElementById("maybeWrap");
+    var maybeList = document.getElementById("maybeList");
+    var outWrap = document.getElementById("outWrap");
+    var outList = document.getElementById("outList");
+    var emptyRoster = document.getElementById("emptyRoster");
+
+    if (seating.confirmed.length === 0){
+      confirmedList.innerHTML = "";
+      confirmedList.style.display = "none";
+    } else {
+      confirmedList.style.display = "";
+      confirmedList.innerHTML = seating.confirmed.map(function(r, i){ return seatRowHtml(i+1, r, false); }).join("");
+    }
+
+    if (seating.waitlist.length === 0){
+      waitlistWrap.hidden = true;
+    } else {
+      waitlistWrap.hidden = false;
+      waitlistList.innerHTML = seating.waitlist.map(function(r, i){ return seatRowHtml(null, r, true); }).join("");
+    }
+
+    var maybes = state.rsvps.filter(function(r){ return r.status === "maybe"; });
+    if (maybes.length === 0){
+      maybeWrap.hidden = true;
+    } else {
+      maybeWrap.hidden = false;
+      maybeList.innerHTML = maybes.map(function(r){
+        return '<span class="chip"><span class="dot"></span>' + esc(r.name) + '</span>';
+      }).join("");
+    }
+
+    var outs = state.rsvps.filter(function(r){ return r.status === "out"; });
+    if (outs.length === 0){
+      outWrap.hidden = true;
+    } else {
+      outWrap.hidden = false;
+      outList.textContent = outs.map(function(r){ return r.name; }).join(", ");
+    }
+
+    emptyRoster.style.display = (state.rsvps.length === 0) ? "block" : "none";
+  }
+
+  function maybePrefillForm(){
+    if (view.prefilled) return;
+    var mine = state.rsvps.find(function(r){ return r.id === getMyId(); });
+    if (!mine) return;
+    view.prefilled = true;
+    document.getElementById("rName").value = mine.name || "";
+    document.getElementById("rNote").value = mine.note || "";
+    view.formStatus = mine.status || "in";
+    view.formGuests = Number(mine.guests) || 0;
+    document.querySelectorAll(".status-btn").forEach(function(b){
+      b.classList.toggle("active", b.getAttribute("data-status") === view.formStatus);
+    });
+    document.getElementById("guestRow").hidden = (view.formStatus !== "in");
+    document.getElementById("guestCount").textContent = view.formGuests;
+    document.getElementById("rsvpSubmitBtn").textContent = "Update RSVP";
+    document.getElementById("removeRsvpBtn").hidden = false;
+    document.getElementById("rsvpHint").textContent = "You’re on the list. Update anytime.";
+  }
+
+  /* ---------------- Render dispatch ---------------- */
+
+  function render(){
+    var mode = state.event ? "main" : "setup";
+    if (mode !== view.mode){
+      view.mode = mode;
+      view.mainMounted = false;
+      view.prefilled = false;
+      if (mode === "setup") mountSetup();
+      else mountMain();
+      return;
+    }
+    if (mode === "main" && view.mainMounted){
+      refreshHeader();
+      refreshRoster();
+      maybePrefillForm();
+      if (view.editOpen === false){
+        // keep edit form in sync with latest data for next open; harmless since hidden
+      }
+    }
+  }
+
+  /* ---------------- Data layer ---------------- */
+
+  function dbRowToEvent(row){
+    return {
+      game: row.game, hostName: row.host_name, date: row.date, time: row.time,
+      location: row.location, buyIn: Number(row.buy_in) || 0,
+      maxSeats: Number(row.max_seats) || 8, note: row.note || ""
+    };
+  }
+  function eventToDbRow(e){
+    return {
+      id: "main", game: e.game, host_name: e.hostName, date: e.date, time: e.time,
+      location: e.location, buy_in: e.buyIn, max_seats: e.maxSeats, note: e.note
+    };
+  }
+  function dbRowToRsvp(row){
+    return {
+      id: row.id, name: row.name, status: row.status,
+      guests: Number(row.guests) || 0, note: row.note || "", createdAt: Number(row.created_at) || 0
+    };
+  }
+
+  function saveEvent(details){
+    state.event = details;
+    render();
+    if (!state.db) return;
+    state.db.from("event_details").upsert(eventToDbRow(details)).then(function(res){
+      if (res.error) showBanner("Couldn’t save game details: " + res.error.message);
+    });
+  }
+  function submitRsvp(id, data){
+    var i = state.rsvps.findIndex(function(r){ return r.id === id; });
+    var row = Object.assign({id: id}, data);
+    if (i >= 0) state.rsvps[i] = row; else state.rsvps.push(row);
+    render();
+    if (!state.db) return;
+    state.db.from("rsvps").upsert({
+      id: id, name: data.name, status: data.status, guests: data.guests,
+      note: data.note, created_at: data.createdAt
+    }).then(function(res){
+      if (res.error) showBanner("Couldn’t save your RSVP: " + res.error.message);
+    });
+  }
+  function removeRsvp(id){
+    state.rsvps = state.rsvps.filter(function(r){ return r.id !== id; });
+    render();
+    if (!state.db) return;
+    state.db.from("rsvps").delete().eq("id", id).then(function(res){
+      if (res.error) showBanner("Couldn’t remove your RSVP: " + res.error.message);
+    });
+  }
+
+  function showBanner(text){
+    var b = document.getElementById("banner");
+    b.textContent = text;
+    b.hidden = false;
+  }
+  function hideBanner(){
+    document.getElementById("banner").hidden = true;
+  }
+
+  async function refetchAll(){
+    var client = state.db;
+    var evRes = await client.from("event_details").select("*").eq("id", "main").maybeSingle();
+    if (evRes.error){ showBanner("Can’t reach the database: " + evRes.error.message + ". Make sure setup.sql has been run in Supabase."); return; }
+    state.event = evRes.data ? dbRowToEvent(evRes.data) : null;
+
+    var rsRes = await client.from("rsvps").select("*").order("created_at", {ascending: true});
+    if (rsRes.error){ showBanner("Can’t reach the database: " + rsRes.error.message); return; }
+    state.rsvps = (rsRes.data || []).map(dbRowToRsvp);
+    hideBanner();
+  }
+
+  async function boot(){
+    if (typeof window.supabase === "undefined" || !window.supabase.createClient){
+      showBanner("Couldn’t load the database library. Check your connection and reload the page.");
+      render();
+      return;
+    }
+    var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    state.db = client;
+
+    await refetchAll();
+    render();
+
+    client
+      .channel("deal-me-in-live")
+      .on("postgres_changes", {event: "*", schema: "public", table: "event_details"}, function(){ refetchAll().then(render); })
+      .on("postgres_changes", {event: "*", schema: "public", table: "rsvps"}, function(){ refetchAll().then(render); })
+      .subscribe();
+  }
+
+  render(); // immediate first paint (setup screen) before db resolves
+  boot();
+})();
+</script>
