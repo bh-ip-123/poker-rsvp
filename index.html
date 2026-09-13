@@ -470,6 +470,11 @@
   var ORGANIZER_NAME = "Barry";
   var BUY_IN = 60;
   var MAX_SEATS = 10;
+  // A soft deterrent against casual/accidental edits, not real security —
+  // it's plainly visible to anyone who views the page source. Good enough
+  // to keep guests from poking at game settings, not a defense against
+  // someone determined to bypass it.
+  var EDIT_PIN = "1234";
 
   var state = {
     event: null,
@@ -477,7 +482,7 @@
     db: null
   };
 
-  var view = { mode: null, mainMounted: false, editOpen: false };
+  var view = { mode: null, mainMounted: false, editOpen: false, editUnlocked: false };
 
   function esc(s){
     return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
@@ -695,6 +700,15 @@
 
     document.getElementById("editBtn").addEventListener("click", function(){
       var panel = document.getElementById("editPanel");
+      if (!view.editOpen && !view.editUnlocked){
+        var entered = window.prompt("Enter the organizer PIN to edit game details:");
+        if (entered === null) return;
+        if (entered.trim() !== EDIT_PIN){
+          window.alert("Incorrect PIN.");
+          return;
+        }
+        view.editUnlocked = true; // only asks once per page load
+      }
       view.editOpen = !view.editOpen;
       panel.classList.toggle("open", view.editOpen);
       if (view.editOpen) fillEditForm();
