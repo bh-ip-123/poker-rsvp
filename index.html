@@ -760,9 +760,12 @@
 
       if (ev.target.matches(".rr-btn")){
         var clicked = ev.target.getAttribute("data-status");
+        var label = clicked === "in" ? "In" : clicked === "maybe" ? "Maybe" : "Can’t make it";
         if (existing && existing.status === clicked){
+          if (!window.confirm("Clear " + name + "’s RSVP?")) return;
           removeRsvp(dbId);
         } else {
+          if (!window.confirm("Mark " + name + " as " + label + "?")) return;
           submitRsvp(dbId, {
             name: name,
             status: clicked,
