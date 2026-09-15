@@ -845,7 +845,7 @@
     if (established){
       statusEl.innerHTML = '<p class="venue-banner venue-banner-set">🏠 <strong>' + esc(e.location) + '</strong>'
         + (e.venueHost ? ' — hosted by ' + esc(e.venueHost) : '') + '</p>';
-      document.getElementById("venueSubmitBtn").textContent = "Change host or address";
+      document.getElementById("venueSubmitBtn").textContent = "Change venue";
     } else {
       statusEl.innerHTML = '<p class="venue-banner venue-banner-needed">⚠️ No venue yet this month — claim it below.</p>';
       document.getElementById("venueSubmitBtn").textContent = "Click to host this month";
