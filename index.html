@@ -490,7 +490,7 @@
     });
   }
 
-  // The game always falls on the fourth Thursday of the month at 8:00 PM
+  // The game always falls on the last Thursday of the month at 8:00 PM
   // Eastern Time (DST-aware) — never entered manually, always computed.
   function getNYParts(date){
     var fmt = new Intl.DateTimeFormat("en-US", {
@@ -500,19 +500,19 @@
     fmt.formatToParts(date).forEach(function(p){ if (p.type !== "literal") obj[p.type] = p.value; });
     return { year: Number(obj.year), month: Number(obj.month) - 1, day: Number(obj.day) };
   }
-  function fourthThursdayDay(year, month){
-    var d = new Date(Date.UTC(year, month, 1));
+  function lastThursdayDay(year, month){
+    var lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    var d = new Date(Date.UTC(year, month, lastDay));
     var dow = d.getUTCDay(); // 0=Sun..6=Sat
-    var firstThursday = 1 + ((4 - dow + 7) % 7);
-    return firstThursday + 21;
+    return lastDay - ((dow - 4 + 7) % 7);
   }
   function currentGameDateParts(now){
     var t = getNYParts(now);
-    var day = fourthThursdayDay(t.year, t.month);
+    var day = lastThursdayDay(t.year, t.month);
     if (t.day > day){
       var m = t.month + 1, y = t.year;
       if (m > 11){ m = 0; y += 1; }
-      return { year: y, month: m, day: fourthThursdayDay(y, m) };
+      return { year: y, month: m, day: lastThursdayDay(y, m) };
     }
     return { year: t.year, month: t.month, day: day };
   }
@@ -583,7 +583,7 @@
       + '<section class="card">'
       +   '<div class="card-fan" aria-hidden="true"><span class="mini-card">A♠</span><span class="mini-card">K♠</span><span class="mini-card">Q♠</span><span class="mini-card">J♠</span><span class="mini-card">10♠</span></div>'
       +   '<h2>Set up the game</h2>'
-      +   '<p class="hint">The date defaults to the fourth Thursday of the month, 8:00 PM Eastern — adjust it below only if this month needs a one-off change. Fill in the rest once; the card above updates as you type, and everyone who opens this link afterward will see it.</p>'
+      +   '<p class="hint">The date defaults to the last Thursday of the month, 8:00 PM Eastern — adjust it below only if this month needs a one-off change. Fill in the rest once; the card above updates as you type, and everyone who opens this link afterward will see it.</p>'
       +   '<form id="setupForm">'
       +     '<div class="two-col">'
       +       '<label>Date <input type="date" name="date" id="fDate" required></label>'
@@ -657,7 +657,7 @@
       +   '</div>'
       +   '<div class="edit-panel" id="editPanel">'
       +     '<form id="editForm">'
-      +       '<p class="hint" style="margin-top:0">Date defaults to the fourth Thursday, 8pm ET — change it here just for this game night. Venue lives in its own card below, since it rotates monthly.</p>'
+      +       '<p class="hint" style="margin-top:0">Date defaults to the last Thursday, 8pm ET — change it here just for this game night. Venue lives in its own card below, since it rotates monthly.</p>'
       +       '<div class="two-col">'
       +         '<label>Date <input type="date" name="date" id="eDate" required></label>'
       +         '<label>Time <input type="time" name="time" id="eTime" required></label>'
